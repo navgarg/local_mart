@@ -87,6 +87,7 @@ class Order {
   final String status; // placed, packed, shipped, out_for_delivery, delivered, cancelled
   final Timestamp createdAt;
   final Map<String, dynamic> perRetailerDelivery; // {retailerId: estimatedDeliveryDateIsoString}
+  final DateTime? pickupDate; // optional pickup date
 
   Order({
     required this.id,
@@ -99,6 +100,7 @@ class Order {
     required this.status,
     required this.createdAt,
     required this.perRetailerDelivery,
+    this.pickupDate,
   });
 
   Map<String, dynamic> toJson() => {
@@ -112,6 +114,7 @@ class Order {
     'status': status,
     'createdAt': createdAt,
     'perRetailerDelivery': perRetailerDelivery,
+    'pickupDate': pickupDate?.toIso8601String(), // store as ISO string
   };
 
   factory Order.fromDoc(DocumentSnapshot doc) {
@@ -120,13 +123,21 @@ class Order {
       id: data['id'] ?? doc.id,
       customerId: data['customerId'],
       customerName: data['customerName'],
-      deliveryAddress: Address.fromJson(Map<String, dynamic>.from(data['deliveryAddress'])),
-      items: (data['items'] as List).map((i) => OrderItem.fromJson(Map<String, dynamic>.from(i))).toList(),
+      deliveryAddress:
+      Address.fromJson(Map<String, dynamic>.from(data['deliveryAddress'])),
+      items: (data['items'] as List)
+          .map((i) => OrderItem.fromJson(Map<String, dynamic>.from(i)))
+          .toList(),
       totalAmount: (data['totalAmount'] as num).toDouble(),
       paymentMethod: data['paymentMethod'],
       status: data['status'],
       createdAt: data['createdAt'] ?? Timestamp.now(),
-      perRetailerDelivery: Map<String, dynamic>.from(data['perRetailerDelivery'] ?? {}),
+      perRetailerDelivery:
+      Map<String, dynamic>.from(data['perRetailerDelivery'] ?? {}),
+      pickupDate: data['pickupDate'] != null
+          ? DateTime.parse(data['pickupDate'])
+          : null,
     );
   }
 }
+
