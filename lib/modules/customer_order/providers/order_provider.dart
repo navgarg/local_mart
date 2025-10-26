@@ -2,9 +2,11 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import 'package:http/http.dart' as http;
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/order_model.dart' as models;
 import '../services/order_service.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:async';
+
 
 class OrderProvider with ChangeNotifier {
   final OrderService _service = OrderService();
@@ -13,23 +15,30 @@ class OrderProvider with ChangeNotifier {
   bool _isPlacing = false;
   bool get isPlacing => _isPlacing;
 
+  models.Order? _activeOrder;
+  models.Order? get activeOrder => _activeOrder;
+
+  StreamSubscription<DocumentSnapshot>? _orderSubscription;
+
   /// 🔹 Place a new order
-  /// Products from the same retailer will have same delivery time
   Future<String> placeOrder({
     required String customerId,
     required String customerName,
     required models.Address address,
     required List<models.OrderItem> items,
-    required String paymentMethod,
+    required String paymentMethod, // 'online' | 'cod'
+    required String receivingMethod, // 'delivery' | 'pickup'
     DateTime? pickupDate,
   }) async {
     _isPlacing = true;
     notifyListeners();
 
+    final now = DateTime.now();
+
     // ⚠️ Pickup validation: must be within 3 days
-    if (paymentMethod == 'pickup') {
-      final now = DateTime.now();
-      if (pickupDate == null || pickupDate.isAfter(now.add(const Duration(days: 3)))) {
+    if (receivingMethod == 'pickup') {
+      if (pickupDate == null ||
+          pickupDate.isAfter(now.add(const Duration(days: 3)))) {
         _isPlacing = false;
         notifyListeners();
         throw Exception('Pickup date must be within 3 days from today.');
@@ -45,23 +54,22 @@ class OrderProvider with ChangeNotifier {
       groups.putIfAbsent(it.retailerId, () => []).add(it);
     }
 
-    // Compute per-retailer delivery (processingDays = 1)
+    // Compute per-retailer delivery only for delivery orders
     final perRetailer = <String, dynamic>{};
-    final now = DateTime.now();
+    if (receivingMethod == 'delivery') {
+      for (var retailerId in groups.keys) {
+        const processingDays = 1;
+        final transitDays = await _fetchTransitDaysFromCourierAPI(
+          pickupPincode: '110020', // TODO: replace with retailer pincode
+          deliveryPincode: address.pincode,
+        );
 
-    for (var retailerId in groups.keys) {
-      const processingDays = 1; // Hardcoded as per team decision
-      final transitDays = await _fetchTransitDaysFromCourierAPI(
-        pickupPincode: '110020', // Replace with retailer pincode in future
-        deliveryPincode: address.pincode,
-      );
-
-      final estimated =
-      now.add(Duration(days: processingDays + transitDays + 2)); // buffer of 2
-      perRetailer[retailerId] = estimated.toIso8601String();
+        final estimated =
+        now.add(Duration(days: processingDays + transitDays + 2));
+        perRetailer[retailerId] = estimated.toIso8601String();
+      }
     }
 
-    // Create Order object
     final order = models.Order(
       id: orderId,
       customerId: customerId,
@@ -70,10 +78,11 @@ class OrderProvider with ChangeNotifier {
       items: items,
       totalAmount: total,
       paymentMethod: paymentMethod,
-      status: 'placed',
+      receivingMethod: receivingMethod,
+      status: 'Not Yet Shipped', // 👈 default initial state
       createdAt: Timestamp.now(),
       perRetailerDelivery: perRetailer,
-      pickupDate: pickupDate, // Store pickup date for order tracker
+      pickupDate: pickupDate,
     );
 
     try {
@@ -88,14 +97,58 @@ class OrderProvider with ChangeNotifier {
     }
   }
 
-  /// 🔹 Stream an order in real time
-  Stream<models.Order> watchOrder(String orderId) {
-    return _service.orderStream(orderId);
+  /// 🔹 Listen to real-time order updates
+  void listenToOrder(String orderId) {
+    stopListeningToOrder(orderId); // prevent duplicate listeners
+    _orderSubscription = FirebaseFirestore.instance
+        .collection('orders')
+        .doc(orderId)
+        .snapshots()
+        .listen((snapshot) {
+      if (snapshot.exists) {
+        _activeOrder = models.Order.fromFirestore(snapshot);
+        notifyListeners();
+      }
+    });
   }
 
-  /// 🔹 Cancel an existing order
+  /// 🔹 Stop listening to a specific order
+  void stopListeningToOrder(String orderId) {
+    _orderSubscription?.cancel();
+    _orderSubscription = null;
+  }
+
+  /// 🔹 Get order by ID
+  models.Order? getOrderById(String orderId) {
+    if (_activeOrder?.id == orderId) return _activeOrder;
+    return null;
+  }
+
+  /// 🔹 Refresh order (manual reload)
+  Future<void> refreshOrder(String orderId) async {
+    final doc =
+    await FirebaseFirestore.instance.collection('orders').doc(orderId).get();
+    if (doc.exists) {
+      _activeOrder = models.Order.fromFirestore(doc);
+      notifyListeners();
+    }
+  }
+
+  /// 🔹 Cancel order (only if not shipped)
   Future<void> cancelOrder(String orderId) async {
-    await _service.updateOrderStatus(orderId, 'cancelled');
+    if (_activeOrder == null) {
+      throw Exception('Order not loaded yet. Please try again.');
+    }
+
+    final currentStatus = _activeOrder!.status;
+
+    // Only cancel if not yet shipped
+    if (currentStatus != 'Not Yet Shipped') {
+      throw Exception('This order cannot be cancelled anymore.');
+    }
+
+    await _service.updateOrderStatus(orderId, 'Cancelled');
+    _activeOrder = _activeOrder!.copyWith(status: 'Cancelled');
     notifyListeners();
   }
 
@@ -107,7 +160,7 @@ class OrderProvider with ChangeNotifier {
     try {
       final url = Uri.parse(
           'https://apiv2.shiprocket.in/v1/external/courier/serviceability/');
-      final token = 'YOUR_SHIPROCKET_API_TOKEN'; // ⚠️ Store securely in production
+      final token = 'YOUR_SHIPROCKET_API_TOKEN'; // ⚠️ Replace securely
 
       final response = await http.post(
         url,
@@ -125,7 +178,8 @@ class OrderProvider with ChangeNotifier {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        final estDays = data['data']['available_courier_companies'][0]['etd'] ?? '3-5 Days';
+        final estDays =
+            data['data']['available_courier_companies'][0]['etd'] ?? '3-5 Days';
         final parts = estDays.split('-');
         if (parts.length == 2) {
           final avg = ((int.parse(parts[0]) + int.parse(parts[1])) / 2).round();
@@ -136,10 +190,11 @@ class OrderProvider with ChangeNotifier {
       return 3; // fallback
     } catch (e) {
       print('Transit fetch error: $e');
-      return 3; // fallback
+      return 3;
     }
   }
 }
+
 
 
 

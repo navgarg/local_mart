@@ -1,170 +1,361 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:local_mart/theme.dart';
+import '../models/order_model.dart';
 import '../providers/order_provider.dart';
-import '../models/order_model.dart' as models;
 
 class OrderTrackingPage extends StatefulWidget {
-  const OrderTrackingPage({super.key});
+  final String orderId;
+  const OrderTrackingPage({super.key, required this.orderId});
 
   @override
   State<OrderTrackingPage> createState() => _OrderTrackingPageState();
 }
 
 class _OrderTrackingPageState extends State<OrderTrackingPage> {
-  late String orderId;
+  bool _isCancelling = false; // 👈 New flag
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final args = ModalRoute.of(context)!.settings.arguments;
-    orderId = args is String ? args : '';
+  void initState() {
+    super.initState();
+    Future.microtask(() {
+      final provider = Provider.of<OrderProvider>(context, listen: false);
+      provider.listenToOrder(widget.orderId);
+    });
   }
 
-  /// 🔹 Handles order cancellation safely with context checks
-  Future<void> _handleCancelOrder(BuildContext context, String orderId) async {
-    final orderProvider = Provider.of<OrderProvider>(context, listen: false);
-
-    try {
-      await orderProvider.cancelOrder(orderId);
-
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Order cancelled successfully')),
-      );
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to cancel order: $e')),
-      );
-    }
+  @override
+  void dispose() {
+    Provider.of<OrderProvider>(context, listen: false)
+        .stopListeningToOrder(widget.orderId);
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final orderProvider = Provider.of<OrderProvider>(context, listen: false);
-    final theme = Theme.of(context);
+    final theme = AppTheme.lightTheme;
 
-    if (orderId.isEmpty) {
-      return Scaffold(
-        body: Center(
-          child: Text('No order selected', style: theme.textTheme.bodyMedium),
-        ),
-      );
-    }
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Order Tracking'),
+        backgroundColor: theme.appBarTheme.backgroundColor,
+        foregroundColor: theme.appBarTheme.foregroundColor,
+      ),
+      body: Consumer<OrderProvider>(
+        builder: (context, orderProvider, _) {
+          final order = orderProvider.getOrderById(widget.orderId);
 
-    return StreamBuilder<models.Order>(
-      stream: orderProvider.watchOrder(orderId),
-      builder: (context, snap) {
-        if (snap.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
-        }
+          if (order == null) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-        if (!snap.hasData) {
-          return Scaffold(
-            body: Center(
-              child: Text('Order not found', style: theme.textTheme.bodyMedium),
-            ),
-          );
-        }
+          final bool canCancel = order.status == 'Not Yet Shipped';
+          final bool cannotCancel = order.status != 'Not Yet Shipped';
 
-        final order = snap.data!;
-        final stages = [
-          'placed',
-          'packed',
-          'shipped',
-          'out_for_delivery',
-          'delivered',
-        ];
-
-        final currentIndex = stages.indexOf(order.status);
-
-        return Scaffold(
-          appBar: AppBar(
-            title: const Text('Order Tracking'),
-            centerTitle: true,
-          ),
-          body: Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Column(
-              children: [
-                Text('Order ID: ${order.id}', style: theme.textTheme.bodyMedium),
-                const SizedBox(height: 12),
-
-                // Progress tracker
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: stages.length,
-                    itemBuilder: (context, idx) {
-                      final completed = idx <= currentIndex;
-                      return ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor:
-                          completed ? theme.colorScheme.primary : Colors.grey[300],
-                          child: Icon(
-                            completed ? Icons.check : Icons.circle,
-                            color: Colors.white,
+          return RefreshIndicator(
+            onRefresh: () async => orderProvider.refreshOrder(widget.orderId),
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Order Info
+                  Card(
+                    color: AppTheme.cardColor,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: const BorderSide(color: AppTheme.borderColor),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Order ID: ${order.id}',
+                              style: theme.textTheme.titleMedium),
+                          const SizedBox(height: 6),
+                          Row(
+                            children: [
+                              const Icon(Icons.local_shipping_outlined,
+                                  color: AppTheme.primaryColor),
+                              const SizedBox(width: 8),
+                              Text(
+                                order.status,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: order.status == 'Delivered'
+                                      ? Colors.green
+                                      : order.status == 'Cancelled'
+                                      ? Colors.red
+                                      : Colors.orange,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Address or Pickup Info
+                  if (order.receivingMethod == 'delivery')
+                    Card(
+                      color: AppTheme.cardColor,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: const BorderSide(color: AppTheme.borderColor),
+                      ),
+                      child: ListTile(
+                        leading: const Icon(Icons.location_on,
+                            color: AppTheme.primaryColor),
                         title: Text(
-                          stages[idx].replaceAll('_', ' ').toUpperCase(),
-                          style: theme.textTheme.bodyLarge,
+                          '${order.deliveryAddress.line1}, ${order.deliveryAddress.city}',
+                          style: theme.textTheme.bodyMedium,
                         ),
                         subtitle: Text(
-                          idx == currentIndex
-                              ? 'Current stage'
-                              : (completed ? 'Completed' : 'Pending'),
+                          '${order.deliveryAddress.state} - ${order.deliveryAddress.pincode}',
                           style: theme.textTheme.bodySmall,
                         ),
-                      );
-                    },
-                  ),
-                ),
-
-                // Delivery details card
-                Card(
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: ListTile(
-                    title: const Text('Delivery Details'),
-                    subtitle: Text(
-                      order.perRetailerDelivery.entries
-                          .map((e) => '${e.key}: ${e.value}')
-                          .join('\n'),
-                      style: theme.textTheme.bodyMedium,
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 12),
-
-                // Cancel button
-                if (order.status == 'placed' ||
-                    order.status == 'packed' ||
-                    order.status == 'shipped')
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      icon: const Icon(Icons.cancel_outlined),
-                      label: const Text('Cancel Order'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: theme.colorScheme.error,
-                        foregroundColor: theme.colorScheme.onError,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                      ),
+                    )
+                  else
+                    Card(
+                      color: AppTheme.cardColor,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: const BorderSide(color: AppTheme.borderColor),
+                      ),
+                      child: ListTile(
+                        leading: const Icon(Icons.store,
+                            color: AppTheme.primaryColor),
+                        title: Text('Pickup Order',
+                            style: theme.textTheme.bodyMedium),
+                        subtitle: Text(
+                          order.pickupDate != null
+                              ? 'Pickup by: ${order.pickupDate!.toLocal().toString().split(' ')[0]}'
+                              : 'Within 3 days from order date',
+                          style: theme.textTheme.bodySmall,
                         ),
                       ),
-                      onPressed: () => _handleCancelOrder(context, order.id),
+                    ),
+
+                  const SizedBox(height: 16),
+
+                  // Items List
+                  Card(
+                    color: AppTheme.cardColor,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: const BorderSide(color: AppTheme.borderColor),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Items', style: theme.textTheme.titleMedium),
+                          const SizedBox(height: 8),
+                          ...order.items.map(
+                                (it) => Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text('${it.name} x ${it.quantity}',
+                                    style: theme.textTheme.bodyMedium),
+                                Text(
+                                  '₹${(it.price * it.quantity).toStringAsFixed(2)}',
+                                  style: theme.textTheme.bodyMedium,
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Divider(),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text('Total:',
+                                  style: theme.textTheme.titleSmall?.copyWith(
+                                      fontWeight: FontWeight.bold)),
+                              Text('₹${order.totalAmount.toStringAsFixed(2)}',
+                                  style: theme.textTheme.titleMedium),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-              ],
+
+                  const SizedBox(height: 16),
+
+                  // Progress Timeline
+                  Text('Order Progress', style: theme.textTheme.titleMedium),
+                  const SizedBox(height: 8),
+                  _StatusTimeline(status: order.status),
+
+                  const SizedBox(height: 24),
+
+                  // Cancel Button Section (💥 Improved)
+                  if (cannotCancel)
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 14, horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[100],
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.grey[300]!),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          Icon(Icons.info_outline, color: Colors.grey),
+                          SizedBox(width: 8),
+                          Text(
+                            'Order cannot be cancelled after shipment.',
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                        ],
+                      ),
+                    )
+                  else
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _isCancelling
+                            ? null
+                            : () async {
+                          final confirm = await showDialog<bool>(
+                            context: context,
+                            builder: (ctx) => AlertDialog(
+                              title: const Text('Cancel Order?'),
+                              content: const Text(
+                                  'Are you sure you want to cancel this order?'),
+                              actions: [
+                                TextButton(
+                                    onPressed: () =>
+                                        Navigator.pop(ctx, false),
+                                    child: const Text('No')),
+                                TextButton(
+                                    onPressed: () =>
+                                        Navigator.pop(ctx, true),
+                                    child: const Text('Yes')),
+                              ],
+                            ),
+                          );
+                          if (confirm == true) {
+                            setState(() => _isCancelling = true);
+                            try {
+                              await orderProvider.cancelOrder(order.id);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text(
+                                        'Order cancelled successfully')),
+                              );
+                              await orderProvider.refreshOrder(order.id);
+                            } catch (e) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                    content: Text(e
+                                        .toString()
+                                        .replaceAll('Exception: ', ''))),
+                              );
+                            } finally {
+                              setState(() => _isCancelling = false);
+                            }
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.redAccent,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                        child: _isCancelling
+                            ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                            : const Text('Cancel Order',
+                            style: TextStyle(color: Colors.white)),
+                      ),
+                    ),
+                ],
+              ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }
+
+class _StatusTimeline extends StatelessWidget {
+  final String status;
+  const _StatusTimeline({required this.status});
+
+  @override
+  Widget build(BuildContext context) {
+    final steps = [
+      'Not Yet Shipped',
+      'Shipped',
+      'Out for Delivery',
+      'Delivered'
+    ];
+    final currentIndex = steps.indexOf(status);
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: steps.map((s) {
+          final index = steps.indexOf(s);
+          final isCompleted = index <= currentIndex;
+          final isLast = index == steps.length - 1;
+
+          return Row(
+            children: [
+              Column(
+                children: [
+                  CircleAvatar(
+                    radius: 12,
+                    backgroundColor:
+                    isCompleted ? Colors.green : Colors.grey[300],
+                    child: Icon(
+                      isCompleted ? Icons.check : Icons.circle,
+                      size: 12,
+                      color: isCompleted ? Colors.white : Colors.grey,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    s,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isCompleted ? Colors.green : Colors.grey[600],
+                      fontWeight:
+                      isCompleted ? FontWeight.w600 : FontWeight.w400,
+                    ),
+                  ),
+                ],
+              ),
+              if (!isLast)
+                Container(
+                  width: 40,
+                  height: 2,
+                  color:
+                  index < currentIndex ? Colors.green : Colors.grey[300],
+                  margin: const EdgeInsets.symmetric(horizontal: 6),
+                ),
+            ],
+          );
+        }).toList(),
+      ),
+    );
+  }
+}
+
+
+

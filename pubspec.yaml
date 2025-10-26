@@ -68,6 +68,7 @@ dependencies:
 # following page: https://dart.dev/tools/pub/pubspec
 
 # The following section is specific to Flutter packages.
+  http: any
 flutter:
 
   # The following line ensures that the Material Icons font is
@@ -105,3 +106,7 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+

@@ -83,7 +83,8 @@ class Order {
   final Address deliveryAddress;
   final List<OrderItem> items;
   final double totalAmount;
-  final String paymentMethod; // 'online' | 'cod' | 'pickup'
+  final String paymentMethod; // 'online' | 'cod'
+  final String receivingMethod; // 'delivery' | 'pickup'
   final String status; // placed, packed, shipped, out_for_delivery, delivered, cancelled
   final Timestamp createdAt;
   final Map<String, dynamic> perRetailerDelivery; // {retailerId: estimatedDeliveryDateIsoString}
@@ -97,11 +98,34 @@ class Order {
     required this.items,
     required this.totalAmount,
     required this.paymentMethod,
+    required this.receivingMethod,
     required this.status,
     required this.createdAt,
     required this.perRetailerDelivery,
     this.pickupDate,
   });
+
+  // ✅ CopyWith method to update partial fields easily
+  Order copyWith({
+    String? status,
+    Map<String, dynamic>? perRetailerDelivery,
+    DateTime? pickupDate,
+  }) {
+    return Order(
+      id: id,
+      customerId: customerId,
+      customerName: customerName,
+      deliveryAddress: deliveryAddress,
+      items: items,
+      totalAmount: totalAmount,
+      paymentMethod: paymentMethod,
+      receivingMethod: receivingMethod,
+      status: status ?? this.status,
+      createdAt: createdAt,
+      perRetailerDelivery: perRetailerDelivery ?? this.perRetailerDelivery,
+      pickupDate: pickupDate ?? this.pickupDate,
+    );
+  }
 
   Map<String, dynamic> toJson() => {
     'id': id,
@@ -111,6 +135,7 @@ class Order {
     'items': items.map((e) => e.toJson()).toList(),
     'totalAmount': totalAmount,
     'paymentMethod': paymentMethod,
+    'receivingMethod': receivingMethod,
     'status': status,
     'createdAt': createdAt,
     'perRetailerDelivery': perRetailerDelivery,
@@ -130,6 +155,7 @@ class Order {
           .toList(),
       totalAmount: (data['totalAmount'] as num).toDouble(),
       paymentMethod: data['paymentMethod'],
+      receivingMethod: data['receivingMethod'],
       status: data['status'],
       createdAt: data['createdAt'] ?? Timestamp.now(),
       perRetailerDelivery:
@@ -139,5 +165,15 @@ class Order {
           : null,
     );
   }
+
+  // ✅ Optional alias (for Firestore API consistency)
+  factory Order.fromFirestore(DocumentSnapshot doc) => Order.fromDoc(doc);
 }
+
+// ✅ Helper extension for date formatting
+extension DateFormatting on DateTime {
+  String toShortString() => "$day/$month/$year";
+}
+
+
 
