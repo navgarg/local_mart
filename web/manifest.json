@@ -1,6 +1,6 @@
 {
-    "name": "local_mart",
-    "short_name": "local_mart",
+    "name": "projects",
+    "short_name": "projects",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
