@@ -1,25 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:projects/screens/address_details_screen.dart' ;
-import 'package:projects/screens/buisness_details_screen.dart';
-import 'package:projects/screens/map_location_picker_screen.dart';
-import 'package:projects/screens/role_selection.dart';
+import 'package:projects/modules/login/screens/address_details_screen.dart' ;
+import 'package:projects/modules/login/screens/buisness_details_screen.dart';
+import 'package:projects/modules/login/screens/map_location_picker_screen.dart';
+import 'package:projects/modules/login/screens/role_selection.dart';
 import 'firebase_options.dart';
 
 
 
 // your screens
-import 'package:projects/screens/login_screen.dart';
-import 'package:projects/screens/signup_screen.dart';
-import 'package:projects/screens/otp_verification_screen.dart';
-import 'package:projects/screens/forgot_password_screen.dart';
-import 'package:projects/screens/verify_reset_otp_screen.dart';
-import 'package:projects/screens/reset_password_screen.dart';
-import 'package:projects/screens/password_updated_screen.dart';
-import 'package:projects/screens/home_screen.dart';
-import 'package:projects/screens/gender_question_screen.dart';
-import 'package:projects/screens/age_question_screen.dart';
-
+import 'package:projects/modules/login/screens/login_screen.dart';
+import 'package:projects/modules/login/screens/signup_screen.dart';
+import 'package:projects/modules/login/screens/otp_verification_screen.dart';
+import 'package:projects/modules/login/screens/forgot_password_screen.dart';
+import 'package:projects/modules/login/screens/verify_reset_otp_screen.dart';
+import 'package:projects/modules/login/screens/reset_password_screen.dart';
+import 'package:projects/modules/login/screens/password_updated_screen.dart';
+import 'package:projects/modules/login/screens/home_screen.dart';
+import 'package:projects/modules/login/screens/gender_question_screen.dart';
+import 'package:projects/modules/login/screens/age_question_screen.dart';
+import 'package:projects/modules/login/screens/mobile_details_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -55,6 +55,7 @@ class MyApp extends StatelessWidget {
         '/password-updated': (context) => const PasswordUpdatedScreen(),
         '/home': (context) => const HomeScreen(),
         '/role-selection': (context) => const RoleSelectionScreen(),
+        '/mobile-details': (context) => const MobileDetailsScreen(),
         '/gender-question': (context) => const GenderQuestionScreen(),
         '/age-question': (context) => const AgeQuestionScreen(),
         '/map-location': (context) => const MapLocationPickerScreen(),
