@@ -1,14 +1,17 @@
-import 'dart:convert';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
-import 'package:http/http.dart' as http;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/order_model.dart' as models;
 import '../services/order_service.dart';
-import 'dart:async';
-
+import '../utils/calendar_helper.dart';
+import '../utils/notification_helper.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:emailjs/emailjs.dart' as emailjs;
 
 class OrderProvider with ChangeNotifier {
+  OrderProvider();
+
   final OrderService _service = OrderService();
   final Uuid _uuid = const Uuid();
 
@@ -18,75 +21,225 @@ class OrderProvider with ChangeNotifier {
   models.Order? _activeOrder;
   models.Order? get activeOrder => _activeOrder;
 
-  StreamSubscription<DocumentSnapshot>? _orderSubscription;
+  StreamSubscription<models.Order>? _orderSubscription;
+  Timer? _statusTimer;
 
-  /// 🔹 Place a new order
+  // --------------------------------------------------------------------------
+  // Firestore Notification Sender (per-user subcollection)
+  // --------------------------------------------------------------------------
+  Future<void> _sendNotification({
+    required String userId,
+    required String title,
+    required String message,
+    required String status,
+    required String orderId,
+  }) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .collection('notifications')
+          .add({
+        'title': title,
+        'message': message,
+        'status': status,
+        'orderId': orderId,
+        'timestamp': FieldValue.serverTimestamp(),
+        'read': false,
+      });
+    } catch (e) {
+      debugPrint('Failed to send notification: $e');
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // Refresh order data manually (non-stream)
+  // --------------------------------------------------------------------------
+  Future<void> refreshOrder(String userId, String orderId) async {
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .collection('orders')
+          .doc(orderId)
+          .get();
+
+      if (!doc.exists) return;
+      _activeOrder = models.Order.fromDoc(doc);
+      notifyListeners();
+    } catch (e) {
+      debugPrint("Failed to refresh order: $e");
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // Razorpay key helper
+  // --------------------------------------------------------------------------
+  Future<String> getRazorpayKey() async {
+    final key = dotenv.env['RAZORPAY_KEY'];
+    if (key == null || key.isEmpty) throw Exception('Razorpay key missing in .env');
+    return key;
+  }
+
+  // --------------------------------------------------------------------------
+  // Place Order
+  // --------------------------------------------------------------------------
   Future<String> placeOrder({
-    required String customerId,
+    required String userId,
     required String customerName,
     required models.Address address,
     required List<models.OrderItem> items,
     required String paymentMethod, // 'online' | 'cod'
     required String receivingMethod, // 'delivery' | 'pickup'
     DateTime? pickupDate,
+    required dynamic cartProvider,
+    String? razorpayPaymentId,
   }) async {
     _isPlacing = true;
     notifyListeners();
 
     final now = DateTime.now();
 
-    // ⚠️ Pickup validation: must be within 3 days
+    // Validate pickup conditions
     if (receivingMethod == 'pickup') {
-      if (pickupDate == null ||
-          pickupDate.isAfter(now.add(const Duration(days: 3)))) {
+      if (pickupDate == null || pickupDate.isAfter(now.add(const Duration(days: 3)))) {
         _isPlacing = false;
         notifyListeners();
-        throw Exception('Pickup date must be within 3 days from today.');
+        throw Exception('Pickup date must be within 3 days.');
       }
+      if (paymentMethod == 'cod') {
+        _isPlacing = false;
+        notifyListeners();
+        throw Exception('COD not available for pickup orders.');
+      }
+    }
+
+    // Compute total
+    double total = 0.0;
+    try {
+      total = double.parse((cartProvider.finalTotal as double).toStringAsFixed(2));
+    } catch (_) {}
+
+    // Group items by seller
+    final Map<String, List<models.OrderItem>> groupedBySeller = {};
+    for (var item in items) {
+      groupedBySeller.putIfAbsent(item.sellerId, () => []).add(item);
+    }
+
+    // Get ETA map
+    Map<String, String> sellerEtas = {};
+    int maxEtaDays = 5;
+    try {
+      sellerEtas = await _service.calculateEtaForAllRetailers(
+        groupedByRetailer: groupedBySeller,
+        customerLat: address.lat,
+        customerLng: address.lng,
+      );
+
+      // Parse day numbers
+      final days = sellerEtas.values
+          .map((e) => _extractDaysFromEta(e))
+          .where((d) => d != null)
+          .cast<int>()
+          .toList();
+
+      if (days.isNotEmpty) maxEtaDays = days.reduce((a, b) => a > b ? a : b);
+    } catch (e) {
+      debugPrint('ETA calc failed: $e');
     }
 
     final orderId = _uuid.v4();
-    final total = items.fold(0.0, (sum, it) => sum + it.price * it.quantity);
 
-    // Group items by retailer
-    final groups = <String, List<models.OrderItem>>{};
-    for (var it in items) {
-      groups.putIfAbsent(it.retailerId, () => []).add(it);
-    }
-
-    // Compute per-retailer delivery only for delivery orders
-    final perRetailer = <String, dynamic>{};
-    if (receivingMethod == 'delivery') {
-      for (var retailerId in groups.keys) {
-        const processingDays = 1;
-        final transitDays = await _fetchTransitDaysFromCourierAPI(
-          pickupPincode: '110020', // TODO: replace with retailer pincode
-          deliveryPincode: address.pincode,
-        );
-
-        final estimated =
-        now.add(Duration(days: processingDays + transitDays + 2));
-        perRetailer[retailerId] = estimated.toIso8601String();
-      }
-    }
-
+    // Build order model
     final order = models.Order(
       id: orderId,
-      customerId: customerId,
+      userId: userId,
       customerName: customerName,
       deliveryAddress: address,
       items: items,
       totalAmount: total,
       paymentMethod: paymentMethod,
       receivingMethod: receivingMethod,
-      status: 'Not Yet Shipped', // 👈 default initial state
+      status: receivingMethod == 'pickup' ? 'preparing' : 'order_placed',
       createdAt: Timestamp.now(),
-      perRetailerDelivery: perRetailer,
+      placedAt: DateTime.now(),
+      perRetailerDelivery: sellerEtas.map((id, eta) => MapEntry(id, {'eta': eta})),
       pickupDate: pickupDate,
+      etaDays: maxEtaDays,
+      expectedDelivery: now.add(Duration(days: maxEtaDays)),
+      razorpayPaymentId: razorpayPaymentId,
     );
 
     try {
-      await _service.placeOrder(order);
+      await _service.placeOrder(order, perRetailerDelivery: order.perRetailerDelivery);
+
+      // Notify retailers
+      for (var item in items) {
+        try {
+          await FirebaseFirestore.instance
+              .collection("users")
+              .doc(item.sellerId)
+              .collection("customer_orders").add({
+            "customerId": userId,
+            "orderId": orderId,
+            "type": "new_order",
+            "deliveryMethod": receivingMethod,
+            "timestamp": FieldValue.serverTimestamp(),
+            if (receivingMethod == "pickup" && pickupDate != null)
+              "pickupDate": pickupDate.toIso8601String(),
+          });
+        } catch (e) {
+          debugPrint('Failed to notify seller ${item.sellerId}: $e');
+        }
+      }
+
+      // Schedule reminders
+      try {
+        if (receivingMethod == 'delivery' && order.expectedDelivery != null) {
+          await CalendarHelper.addOrderEvent(
+            title: 'Delivery Expected',
+            description: 'Your LocalMart order arrives today',
+            date: order.expectedDelivery!,
+          );
+
+          await NotificationHelper.scheduleReminder(
+            title: 'Delivery Reminder',
+            body: 'Your LocalMart order arrives today!',
+            date: DateTime(
+              order.expectedDelivery!.year,
+              order.expectedDelivery!.month,
+              order.expectedDelivery!.day,
+              8,
+            ),
+          );
+        } else if (pickupDate != null) {
+          await CalendarHelper.addOrderEvent(
+            title: 'Pickup Reminder',
+            description: 'Pick up your LocalMart order today',
+            date: pickupDate,
+          );
+        }
+      } catch (e) {
+        debugPrint('Reminder scheduling failed: $e');
+      }
+
+      cartProvider.clear();
+
+      _simulateOrderProgress(userId, orderId, maxEtaDays);
+
+      await _sendNotification(
+        userId: userId,
+        title: 'Order Placed',
+        message: 'Your order has been placed successfully!',
+        status: order.status,
+        orderId: orderId,
+      );
+      await _sendEmailIfNeeded(
+        userId: userId,
+        status: 'order_placed',
+        orderId: orderId,
+      );
+
       _isPlacing = false;
       notifyListeners();
       return orderId;
@@ -97,106 +250,239 @@ class OrderProvider with ChangeNotifier {
     }
   }
 
-  /// 🔹 Listen to real-time order updates
-  void listenToOrder(String orderId) {
-    stopListeningToOrder(orderId); // prevent duplicate listeners
-    _orderSubscription = FirebaseFirestore.instance
+  // --------------------------------------------------------------------------
+  // Listen to order updates
+  // --------------------------------------------------------------------------
+  void listenToOrder(String userId, String orderId) {
+    stopListeningToOrder();
+    _orderSubscription = _service.orderStream(userId, orderId).listen((order) {
+      _activeOrder = order;
+      notifyListeners();
+    }, onError: (e) {
+      debugPrint('Order stream error: $e');
+    });
+  }
+
+  void stopListeningToOrder() {
+    _orderSubscription?.cancel();
+    _statusTimer?.cancel();
+    _orderSubscription = null;
+    _statusTimer = null;
+  }
+
+  // --------------------------------------------------------------------------
+  // Cancel pickup order
+  // --------------------------------------------------------------------------
+  Future<void> cancelPickupOrder(String orderId, String userId) async {
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .collection('orders')
+          .doc(orderId)
+          .get();
+
+      if (!doc.exists) throw Exception("Order not found");
+
+      final order = models.Order.fromDoc(doc);
+      if (order.status != "preparing" && order.status != "ready") {
+        throw Exception("Pickup order cannot be cancelled now.");
+      }
+
+      await _service.restoreStockForCancelledOrder(order);
+
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .collection('orders')
+          .doc(orderId)
+          .update({
+        "status": "pickup_cancelled",
+        "cancelledAt": FieldValue.serverTimestamp(),
+      });
+
+      await _sendNotification(
+        userId: order.userId,
+        title: "Pickup Cancelled",
+        message: "Your pickup order has been cancelled.",
+        status: "pickup_cancelled",
+          orderId: orderId,
+      );
+      await _sendEmailIfNeeded(
+        userId: userId,
+        status: 'pickup_cancelled',
+        orderId: orderId,
+      );
+
+      notifyListeners();
+    } catch (e) {
+      debugPrint("Cancel pickup failed: $e");
+      rethrow;
+    }
+  }
+
+  // --------------------------------------------------------------------------
+  // Cancel delivery order
+  // --------------------------------------------------------------------------
+  Future<void> cancelOrder(String userId, String orderId) async {
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
         .collection('orders')
         .doc(orderId)
-        .snapshots()
-        .listen((snapshot) {
-      if (snapshot.exists) {
-        _activeOrder = models.Order.fromFirestore(snapshot);
-        notifyListeners();
+        .get();
+
+    if (!doc.exists) throw Exception('Order not found');
+    final order = models.Order.fromDoc(doc);
+
+    if (order.status != 'order_placed' && order.status != 'shipped') {
+      throw Exception('Order cannot be cancelled now.');
+    }
+
+    await _service.restoreStockForCancelledOrder(order);
+
+    await _sendNotification(
+      userId: userId,
+      title: 'Order Cancelled',
+      message: 'Your order has been cancelled.',
+      orderId: orderId,
+      status: 'cancelled',
+    );
+    await _sendEmailIfNeeded(
+      userId: userId,
+      status: 'cancelled',
+      orderId: orderId,
+    );
+
+    notifyListeners();
+  }
+
+  // --------------------------------------------------------------------------
+  // Simulated status progression (demo only)
+  // --------------------------------------------------------------------------
+  void _simulateOrderProgress(String userId, String orderId, int etaDays) {
+    final shippedAt = Duration(days: (etaDays * 0.25).round());
+    final outForDeliveryAt = Duration(days: (etaDays * 0.75).round());
+    final totalDuration = Duration(days: etaDays);
+
+    _statusTimer?.cancel();
+
+    _statusTimer = Timer.periodic(const Duration(hours: 1), (timer) async {
+      try {
+        final doc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userId)
+            .collection('orders')
+            .doc(orderId)
+            .get();
+
+        if (!doc.exists) return;
+
+        final order = models.Order.fromDoc(doc);
+        final elapsed = DateTime.now().difference(order.placedAt);
+
+        String? newStatus;
+        if (elapsed >= totalDuration) {
+          newStatus = 'delivered';
+          timer.cancel();
+        } else if (elapsed >= outForDeliveryAt) {
+          newStatus = 'out_for_delivery';
+        } else if (elapsed >= shippedAt) {
+          newStatus = 'shipped';
+        }
+
+        if (newStatus != null && newStatus != order.status) {
+          await _service.updateOrderStatus(userId, orderId, newStatus);
+          await _sendNotification(
+            userId: order.userId,
+            title: 'Order $newStatus',
+            message: 'Your order is now $newStatus.',
+            status: newStatus,
+            orderId: orderId,
+          );
+          if (newStatus == 'delivered') {
+            await _sendEmailIfNeeded(
+              userId: order.userId,
+              status: 'delivered',
+              orderId: order.id,
+            );
+          }
+
+        }
+      } catch (e) {
+        debugPrint('Sim progress error: $e');
       }
     });
   }
 
-  /// 🔹 Stop listening to a specific order
-  void stopListeningToOrder(String orderId) {
-    _orderSubscription?.cancel();
-    _orderSubscription = null;
-  }
-
-  /// 🔹 Get order by ID
-  models.Order? getOrderById(String orderId) {
-    if (_activeOrder?.id == orderId) return _activeOrder;
+  // --------------------------------------------------------------------------
+  // ETA Parser (no ~ symbol)
+  // --------------------------------------------------------------------------
+  int? _extractDaysFromEta(String eta) {
+    final match = RegExp(r'(\d+)\s*days').firstMatch(eta);
+    if (match != null) return int.tryParse(match.group(1)!);
     return null;
   }
 
-  /// 🔹 Refresh order (manual reload)
-  Future<void> refreshOrder(String orderId) async {
-    final doc =
-    await FirebaseFirestore.instance.collection('orders').doc(orderId).get();
-    if (doc.exists) {
-      _activeOrder = models.Order.fromFirestore(doc);
-      notifyListeners();
-    }
+  @override
+  void dispose() {
+    stopListeningToOrder();
+    super.dispose();
   }
-
-  /// 🔹 Cancel order (only if not shipped)
-  Future<void> cancelOrder(String orderId) async {
-    if (_activeOrder == null) {
-      throw Exception('Order not loaded yet. Please try again.');
-    }
-
-    final currentStatus = _activeOrder!.status;
-
-    // Only cancel if not yet shipped
-    if (currentStatus != 'Not Yet Shipped') {
-      throw Exception('This order cannot be cancelled anymore.');
-    }
-
-    await _service.updateOrderStatus(orderId, 'Cancelled');
-    _activeOrder = _activeOrder!.copyWith(status: 'Cancelled');
-    notifyListeners();
-  }
-
-  /// 🔹 Fetch transit days from Shiprocket API
-  Future<int> _fetchTransitDaysFromCourierAPI({
-    required String pickupPincode,
-    required String deliveryPincode,
+  //Sending email
+  Future<void> _sendEmailIfNeeded({
+    required String userId,
+    required String status,     // order_placed | cancelled | pickup_cancelled | delivered
+    required String orderId,
   }) async {
     try {
-      final url = Uri.parse(
-          'https://apiv2.shiprocket.in/v1/external/courier/serviceability/');
-      final token = 'YOUR_SHIPROCKET_API_TOKEN'; // ⚠️ Replace securely
+      final userDoc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
+      final toEmail = (userDoc.data()?['email'] ?? '').toString().trim();
+      if (toEmail.isEmpty) return; // no email on file → skip
 
-      final response = await http.post(
-        url,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: jsonEncode({
-          'pickup_postcode': pickupPincode,
-          'delivery_postcode': deliveryPincode,
-          'cod': 0,
-          'weight': 0.5,
-        }),
-      );
+      String subject;
+      String body;
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final estDays =
-            data['data']['available_courier_companies'][0]['etd'] ?? '3-5 Days';
-        final parts = estDays.split('-');
-        if (parts.length == 2) {
-          final avg = ((int.parse(parts[0]) + int.parse(parts[1])) / 2).round();
-          return avg;
-        }
+      switch (status) {
+        case 'order_placed':
+          subject = 'Your LocalMart Order is Confirmed ✅';
+          body = 'Hello! Your order $orderId has been successfully placed.';
+          break;
+
+        case 'cancelled':
+        case 'pickup_cancelled':
+          subject = 'Your LocalMart Order was Cancelled ❌';
+          body = 'Your order $orderId has been cancelled.';
+          break;
+
+        case 'delivered':
+          subject = 'Your LocalMart Order was Delivered 🎉';
+          body = 'Good news! Your order $orderId has been delivered.';
+          break;
+
+        default:
+          return; // ignore other statuses
       }
 
-      return 3; // fallback
+      await emailjs.send(
+        'EMAILJS_SERVICE_ID',
+        'EMAILJS_TEMPLATE_ID',
+        {
+          'to_email': toEmail,
+          'subject': subject,
+          'message': body,
+        },
+        const emailjs.Options(
+          publicKey: 'EMAILJS_PUBLIC_KEY',
+        ),
+      );
+
     } catch (e) {
-      print('Transit fetch error: $e');
-      return 3;
+      debugPrint('Email send skipped/failed: $e');
     }
   }
+
+
+
 }
-
-
-
-
-
 
