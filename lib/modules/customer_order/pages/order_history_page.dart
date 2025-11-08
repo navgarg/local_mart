@@ -26,7 +26,10 @@ class OrderHistoryPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("My Orders"),
+        title: const Text("My Orders",
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,),),
         backgroundColor: AppTheme.primaryColor,
       ),
 

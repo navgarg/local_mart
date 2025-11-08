@@ -9,6 +9,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'firebase_options.dart';
 
+
 // --- Providers ---
 import 'package:local_mart/modules/customer_order/providers/cart_provider.dart';
 import 'package:local_mart/modules/customer_order/providers/order_provider.dart';
@@ -20,7 +21,8 @@ import 'package:local_mart/modules/customer_order/pages/checkout_page.dart';
 import 'package:local_mart/modules/customer_order/pages/delivery_tracking_page.dart';
 import 'package:local_mart/modules/customer_order/pages/pickup_tracking_page.dart';
 
-void main() async {
+void main()
+async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
 
@@ -35,6 +37,7 @@ void main() async {
       email: "testuser@gmail.com",
       password: "123456",
     );
+
 
     // ✅ Ensure Firestore user document exists
     final userDoc = FirebaseFirestore.instance.collection("users").doc(cred.user!.uid);
@@ -59,6 +62,8 @@ void main() async {
       email: "testuser@gmail.com",
       password: "123456",
     );
+
+
 
     await FirebaseFirestore.instance.collection("users").doc(cred.user!.uid).set({
       "username": "Test User",

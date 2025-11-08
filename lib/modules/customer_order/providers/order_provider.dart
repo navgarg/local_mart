@@ -8,6 +8,7 @@ import '../utils/calendar_helper.dart';
 import '../utils/notification_helper.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:emailjs/emailjs.dart' as emailjs;
+import '../utils/user_category_stats.dart';
 
 class OrderProvider with ChangeNotifier {
   OrderProvider();
@@ -172,6 +173,13 @@ class OrderProvider with ChangeNotifier {
 
     try {
       await _service.placeOrder(order, perRetailerDelivery: order.perRetailerDelivery);
+      //Update category stats in user's document
+      try {
+        await updateUserCategoryStats(userId, items);
+      } catch (e) {
+        debugPrint('⚠️ Failed to update category stats: $e');
+      }
+
 
       // Notify retailers
       for (var item in items) {
@@ -224,7 +232,6 @@ class OrderProvider with ChangeNotifier {
       }
 
       cartProvider.clear();
-
       _simulateOrderProgress(userId, orderId, maxEtaDays);
 
       await _sendNotification(
@@ -356,7 +363,6 @@ class OrderProvider with ChangeNotifier {
 
     notifyListeners();
   }
-
   // --------------------------------------------------------------------------
   // Simulated status progression (demo only)
   // --------------------------------------------------------------------------
@@ -414,6 +420,7 @@ class OrderProvider with ChangeNotifier {
       }
     });
   }
+
 
   // --------------------------------------------------------------------------
   // ETA Parser (no ~ symbol)

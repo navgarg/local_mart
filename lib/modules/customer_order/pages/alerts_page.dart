@@ -17,7 +17,10 @@ class AlertsPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Alerts"),
+        title: const Text("Alerts",
+          style: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w600,),),
         backgroundColor: AppTheme.primaryColor,
       ),
       body: StreamBuilder<QuerySnapshot>(

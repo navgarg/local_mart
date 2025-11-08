@@ -49,8 +49,11 @@ class _DeliveryTrackingPageState extends State<DeliveryTrackingPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Delivery Tracking'),
-        backgroundColor: theme.appBarTheme.backgroundColor,
+        title: const Text('Delivery Tracking',
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,),),
+        backgroundColor:AppTheme.primaryColor,
         foregroundColor: theme.appBarTheme.foregroundColor,
       ),
       body: Consumer<OrderProvider>(

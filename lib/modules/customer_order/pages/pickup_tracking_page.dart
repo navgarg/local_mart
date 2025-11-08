@@ -60,8 +60,11 @@ class _PickupTrackingPageState extends State<PickupTrackingPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Pickup Tracking"),
-        backgroundColor: theme.appBarTheme.backgroundColor,
+        title: const Text("Order Tracking",
+          style: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w600,),),
+        backgroundColor: AppTheme.primaryColor,
         foregroundColor: theme.appBarTheme.foregroundColor,
       ),
 

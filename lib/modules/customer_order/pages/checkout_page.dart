@@ -265,7 +265,10 @@ class _CheckoutPageState extends State<CheckoutPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Checkout'),
+        title: const Text('Checkout',
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,),),
         backgroundColor: AppTheme.primaryColor,
       ),
 
