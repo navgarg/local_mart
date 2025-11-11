@@ -11,14 +11,14 @@ class CartItemWidget extends StatelessWidget {
   final OrderItem item;
   const CartItemWidget({super.key, required this.item});
 
-  // ✅ MEMORY CACHE – fixes flicker & repeated fetches.
+  //MEMORY CACHE – fixes flicker & repeated fetches.
   static final Map<String, Uint8List> _imageCache = {};
   static final Map<String, String> _sellerNameCache = {};
 
   Future<String> _fetchSellerName(String sellerId) async {
     if (sellerId.trim().isEmpty) return "Unknown Retailer";
 
-    // ✅ Return cached name if already fetched
+    //Return cached name if already fetched
     if (_sellerNameCache.containsKey(sellerId)) {
       return _sellerNameCache[sellerId]!;
     }
@@ -35,7 +35,7 @@ class CartItemWidget extends StatelessWidget {
       }
 
       final data = doc.data()!;
-      // ✅ Correct field here
+
       final name = data['username']?.toString().trim().isNotEmpty == true
           ? data['username']
           : "Retailer";
@@ -52,7 +52,7 @@ class CartItemWidget extends StatelessWidget {
     final img = item.image ?? '';
     if (img.isEmpty) return _placeholder();
 
-    // ✅ Check memory cache
+    // Check memory cache
     if (_imageCache.containsKey(item.productId)) {
       return Image.memory(
         _imageCache[item.productId]!,
@@ -63,7 +63,7 @@ class CartItemWidget extends StatelessWidget {
       );
     }
 
-    // ✅ Network Image (gapless = no flicker)
+    // Network Image (gapless = no flicker)
     if (img.startsWith('http')) {
       return Image.network(
         img,
@@ -75,7 +75,7 @@ class CartItemWidget extends StatelessWidget {
       );
     }
 
-    // ✅ Base64 decode ONCE
+    // Base64 decode ONCE
     try {
       final base64Str = img.contains(',') ? img.split(',').last : img;
       final bytes = base64Decode(base64Str);
@@ -141,7 +141,7 @@ class CartItemWidget extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
 
-                    // ✅ Shop name (cached - no flicker)
+
                     FutureBuilder<String>(
                       future: _fetchSellerName(item.sellerId),
                       initialData: _sellerNameCache[item.sellerId],

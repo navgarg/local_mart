@@ -40,10 +40,10 @@ class NotificationHelper {
         ),
       ),
 
-      // ✅ NEW REQUIRED PARAMETER
+
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
 
-      // ✅ UPDATED PARAMETERS
+
       uiLocalNotificationDateInterpretation:
       UILocalNotificationDateInterpretation.absoluteTime,
       matchDateTimeComponents: DateTimeComponents.dateAndTime,

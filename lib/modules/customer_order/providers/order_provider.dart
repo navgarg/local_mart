@@ -177,7 +177,7 @@ class OrderProvider with ChangeNotifier {
       try {
         await updateUserCategoryStats(userId, items);
       } catch (e) {
-        debugPrint('⚠️ Failed to update category stats: $e');
+        debugPrint(' Failed to update category stats: $e');
       }
 
 
@@ -232,7 +232,12 @@ class OrderProvider with ChangeNotifier {
       }
 
       cartProvider.clear();
-      _simulateOrderProgress(userId, orderId, maxEtaDays);
+      if (receivingMethod == 'pickup' && pickupDate != null) {
+        _simulatePickupProgress(userId, orderId, pickupDate);
+      } else {
+        _simulateOrderProgress(userId, orderId, maxEtaDays);
+      }
+
 
       await _sendNotification(
         userId: userId,
@@ -292,11 +297,12 @@ class OrderProvider with ChangeNotifier {
       if (!doc.exists) throw Exception("Order not found");
 
       final order = models.Order.fromDoc(doc);
-      if (order.status != "preparing" && order.status != "ready") {
+      if (order.status != "preparing") {
         throw Exception("Pickup order cannot be cancelled now.");
       }
 
-      await _service.restoreStockForCancelledOrder(order);
+      await _service.restoreStockForCancelledOrder(order, cancelStatus: "pickup_cancelled");
+
 
       await FirebaseFirestore.instance
           .collection('users')
@@ -342,11 +348,22 @@ class OrderProvider with ChangeNotifier {
     if (!doc.exists) throw Exception('Order not found');
     final order = models.Order.fromDoc(doc);
 
-    if (order.status != 'order_placed' && order.status != 'shipped') {
+    if (order.status != 'order_placed' ) {
       throw Exception('Order cannot be cancelled now.');
     }
 
-    await _service.restoreStockForCancelledOrder(order);
+    await _service.restoreStockForCancelledOrder(order, cancelStatus: "cancelled");
+
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .collection('orders')
+        .doc(orderId)
+        .update({
+      "status": "cancelled",
+      "cancelledAt": FieldValue.serverTimestamp(),
+    });
+
 
     await _sendNotification(
       userId: userId,
@@ -367,10 +384,79 @@ class OrderProvider with ChangeNotifier {
   // Simulated status progression (demo only)
   // --------------------------------------------------------------------------
   void _simulateOrderProgress(String userId, String orderId, int etaDays) {
+    _statusTimer?.cancel();
+
     final shippedAt = Duration(days: (etaDays * 0.25).round());
     final outForDeliveryAt = Duration(days: (etaDays * 0.75).round());
     final totalDuration = Duration(days: etaDays);
 
+    _statusTimer = Timer.periodic(const Duration(hours: 1), (timer) async {
+      try {
+        final doc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userId)
+            .collection('orders')
+            .doc(orderId)
+            .get();
+
+        if (!doc.exists) {
+          timer.cancel();
+          return;
+        }
+
+        final order = models.Order.fromDoc(doc);
+
+        // STOP IF NON-SIMULATABLE STATE
+        if (order.status == 'cancelled' ||
+            order.status == 'pickup_cancelled' ||
+            order.status == 'delivered') {
+          timer.cancel();
+          return;
+        }
+
+        //  STOP IF PICKUP ORDER
+        if (order.receivingMethod == 'pickup') {
+          timer.cancel();
+          return;
+        }
+
+        final elapsed = DateTime.now().difference(order.placedAt);
+
+        String? newStatus;
+        if (elapsed >= totalDuration) {
+          newStatus = 'delivered';
+        } else if (elapsed >= outForDeliveryAt) {
+          newStatus = 'out_for_delivery';
+        } else if (elapsed >= shippedAt) {
+          newStatus = 'shipped';
+        }
+
+        if (newStatus != null && newStatus != order.status) {
+          await _service.updateOrderStatus(userId, orderId, newStatus);
+
+          await _sendNotification(
+            userId: userId,
+            title: 'Order $newStatus',
+            message: 'Your order is now $newStatus.',
+            status: newStatus,
+            orderId: orderId,
+          );
+
+          if (newStatus == 'delivered') {
+            await _sendEmailIfNeeded(
+              userId: userId,
+              status: 'delivered',
+              orderId: order.id,
+            );
+            timer.cancel(); //delivery finished
+          }
+        }
+      } catch (e) {
+        debugPrint('Sim progress error: $e');
+      }
+    });
+  }
+  void _simulatePickupProgress(String userId, String orderId, DateTime pickupDate) {
     _statusTimer?.cancel();
 
     _statusTimer = Timer.periodic(const Duration(hours: 1), (timer) async {
@@ -382,45 +468,62 @@ class OrderProvider with ChangeNotifier {
             .doc(orderId)
             .get();
 
-        if (!doc.exists) return;
-
-        final order = models.Order.fromDoc(doc);
-        final elapsed = DateTime.now().difference(order.placedAt);
-
-        String? newStatus;
-        if (elapsed >= totalDuration) {
-          newStatus = 'delivered';
+        if (!doc.exists) {
           timer.cancel();
-        } else if (elapsed >= outForDeliveryAt) {
-          newStatus = 'out_for_delivery';
-        } else if (elapsed >= shippedAt) {
-          newStatus = 'shipped';
+          return;
         }
 
-        if (newStatus != null && newStatus != order.status) {
+        final order = models.Order.fromDoc(doc);
+
+        //STOP if cancelled or finished
+        if (order.status == 'pickup_cancelled' || order.status == 'picked') {
+          timer.cancel();
+          return;
+        }
+
+        final elapsedDays = DateTime.now().difference(order.placedAt).inDays;
+
+        String? newStatus;
+
+        // After 1 day → READY
+        if (elapsedDays >= 1 && order.status == "preparing") {
+          newStatus = "ready";
+        }
+
+        // On pickup day → PICKED
+        final now = DateTime.now();
+        if (order.status == "ready" &&
+            pickupDate.year == now.year &&
+            pickupDate.month == now.month &&
+            pickupDate.day == now.day) {
+          newStatus = "picked";
+        }
+
+        if (newStatus != null) {
           await _service.updateOrderStatus(userId, orderId, newStatus);
+
           await _sendNotification(
-            userId: order.userId,
-            title: 'Order $newStatus',
-            message: 'Your order is now $newStatus.',
+            userId: userId,
+            title: "Order $newStatus",
+            message: "Your pickup order is now $newStatus.",
             status: newStatus,
             orderId: orderId,
           );
-          if (newStatus == 'delivered') {
-            await _sendEmailIfNeeded(
-              userId: order.userId,
-              status: 'delivered',
-              orderId: order.id,
-            );
-          }
 
+          if (newStatus == "picked") {
+            await _sendEmailIfNeeded(
+              userId: userId,
+              status: "delivered",
+              orderId: orderId,
+            );
+            timer.cancel();
+          }
         }
       } catch (e) {
-        debugPrint('Sim progress error: $e');
+        debugPrint("Pickup sim error: $e");
       }
     });
   }
-
 
   // --------------------------------------------------------------------------
   // ETA Parser (no ~ symbol)
@@ -452,18 +555,18 @@ class OrderProvider with ChangeNotifier {
 
       switch (status) {
         case 'order_placed':
-          subject = 'Your LocalMart Order is Confirmed ✅';
+          subject = 'Your LocalMart Order is Confirmed ';
           body = 'Hello! Your order $orderId has been successfully placed.';
           break;
 
         case 'cancelled':
         case 'pickup_cancelled':
-          subject = 'Your LocalMart Order was Cancelled ❌';
+          subject = 'Your LocalMart Order was Cancelled';
           body = 'Your order $orderId has been cancelled.';
           break;
 
         case 'delivered':
-          subject = 'Your LocalMart Order was Delivered 🎉';
+          subject = 'Your LocalMart Order was Delivered';
           body = 'Good news! Your order $orderId has been delivered.';
           break;
 
@@ -486,6 +589,141 @@ class OrderProvider with ChangeNotifier {
 
     } catch (e) {
       debugPrint('Email send skipped/failed: $e');
+    }
+  }
+  Future<void> maybeAutoAdvanceOrderStatus(String userId, String orderId) async {
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .collection('orders')
+        .doc(orderId)
+        .get();
+
+    if (!doc.exists) return;
+    final order = models.Order.fromDoc(doc);
+
+    // Skip pickup orders
+    if (order.receivingMethod == 'pickup') return;
+
+    //Skip cancelled/delivered
+    if (order.status == 'delivered' ||
+        order.status == 'cancelled' ||
+        order.status == 'pickup_cancelled') return;
+
+    final elapsed = DateTime.now().difference(order.placedAt);
+    final etaDays = order.etaDays ?? 3;
+
+    String? newStatus;
+
+    if (elapsed.inDays >= etaDays) newStatus = "delivered";
+    else if (elapsed.inDays >= (etaDays * 0.75).round()) newStatus = "out_for_delivery";
+    else if (elapsed.inDays >= (etaDays * 0.25).round()) newStatus = "shipped";
+
+    if (newStatus != null && newStatus != order.status) {
+      await _service.updateOrderStatus(userId, orderId, newStatus);
+      await _sendNotification(
+        userId: order.userId,
+        title: 'Order $newStatus',
+        message: 'Your order is now $newStatus.',
+        status: newStatus,
+        orderId: orderId,
+      );
+      notifyListeners();
+    }
+  }
+
+  Future<void> autoRefreshAllOrders(String userId) async {
+    final snapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(userId)
+        .collection('orders')
+        .get();
+
+    for (final doc in snapshot.docs) {
+      final order = models.Order.fromDoc(doc);
+
+      //Skip finished or cancelled orders
+      if (order.status == 'delivered' ||
+          order.status == 'cancelled' ||
+          order.status == 'pickup_cancelled' ||
+          order.status == 'picked') {
+        continue;
+      }
+
+      //Handle PICKUP ORDERS auto-progression
+      if (order.receivingMethod == 'pickup') {
+        final elapsedDays = DateTime.now().difference(order.placedAt).inDays;
+        String? newStatus;
+
+        // Preparing → Ready (after 1 day)
+        if (elapsedDays >= 1 && order.status == "preparing") {
+          newStatus = "ready";
+        }
+
+        // Ready → Picked (on pickup date)
+        final pickupDate = order.pickupDate;
+        if (pickupDate != null &&
+            order.status == "ready" &&
+            DateTime.now().year == pickupDate.year &&
+            DateTime.now().month == pickupDate.month &&
+            DateTime.now().day == pickupDate.day) {
+          newStatus = "picked";
+        }
+
+        if (newStatus != null && newStatus != order.status) {
+          await _service.updateOrderStatus(userId, order.id, newStatus);
+
+          await _sendNotification(
+            userId: userId,
+            title: "Order $newStatus",
+            message: "Your pickup order is now $newStatus.",
+            status: newStatus,
+            orderId: order.id,
+          );
+
+          await _sendEmailIfNeeded(
+            userId: userId,
+            status: newStatus == "picked" ? "delivered" : newStatus,
+            orderId: order.id,
+          );
+        }
+
+        continue; //move to next order safely
+      }
+
+
+      // Skip orders without ETA (just in case)
+      if (order.etaDays == null) continue;
+
+      final elapsed = DateTime.now().difference(order.placedAt);
+      final etaDays = order.etaDays!;
+      final shippedAt = Duration(days: (etaDays * 0.25).round());
+      final outForDeliveryAt = Duration(days: (etaDays * 0.75).round());
+      final deliveredAt = Duration(days: etaDays);
+
+      String? newStatus;
+
+      if (elapsed >= deliveredAt) newStatus = 'delivered';
+      else if (elapsed >= outForDeliveryAt) newStatus = 'out_for_delivery';
+      else if (elapsed >= shippedAt) newStatus = 'shipped';
+
+      if (newStatus != null && newStatus != order.status) {
+        await _service.updateOrderStatus(userId, order.id, newStatus);
+        await _sendNotification(
+          userId: userId,
+          title: 'Order $newStatus',
+          message: 'Your order is now $newStatus.',
+          status: newStatus,
+          orderId: order.id,
+        );
+        if (newStatus == 'delivered') {
+          await _sendEmailIfNeeded(
+            userId: userId,
+            status: 'delivered',
+            orderId: order.id,
+          );
+        }
+      }
     }
   }
 

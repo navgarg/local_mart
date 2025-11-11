@@ -22,7 +22,7 @@ Future<void> updateUserCategoryStats(String userId, List<dynamic> items) async {
     final parts = productPath.split('/');
     if (parts.length <= 2) continue;
 
-    final category = parts[2]; // ✅ index 2 confirmed
+    final category = parts[2];
 
     newCounts[category] = (newCounts[category] ?? 0) + 1;
   }
@@ -42,7 +42,7 @@ Future<void> updateUserCategoryStats(String userId, List<dynamic> items) async {
       existingStats[category] = (existingStats[category] ?? 0) + count;
     });
 
-    // ✅ Write back AS A MAP under categoryStats
+
     transaction.set(
       userRef,
       {'categoryStats': existingStats},

@@ -54,11 +54,11 @@ class AlertsPage extends StatelessWidget {
 
               final title = data['title'] ?? "No title";
               final message = data['message'] ?? "No message";
-              final orderId = data['orderId'] ?? "N/A"; // ✅ NEW
+              final orderId = data['orderId'] ?? "N/A";
               final timestamp = (data['timestamp'] as Timestamp?)?.toDate();
               final read = data['read'] ?? false;
 
-              // ✅ Mark as read on tap
+              // Mark as read on tap
               void markAsRead() {
                 if (!read) {
                   doc.reference.update({'read': true});
@@ -95,7 +95,7 @@ class AlertsPage extends StatelessWidget {
                             const SizedBox(height: 4),
                             Text(message, style: const TextStyle(fontSize: 14)),
 
-                            // ✅ DISPLAY ORDER ID HERE
+                            // DISPLAY ORDER ID HERE
                             Text(
                               "Order ID: $orderId",
                               style: TextStyle(fontSize: 13, color: Colors.grey.shade700),

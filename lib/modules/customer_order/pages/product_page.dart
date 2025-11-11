@@ -66,10 +66,10 @@ class ProductsPage extends StatelessWidget {
               final data = docs[i].data()! as Map<String, dynamic>;
               final id = docs[i].id;
 
-              // ✅ Product path for stock fetch
+              // Product path for stock fetch
               final productPath = 'products/Categories/electronics/$id';
 
-              // ✅ Image handling
+              // Image handling
               Widget imageWidget;
               final imageData = data['image'];
               if (imageData != null && imageData.toString().startsWith('/9j/')) {
@@ -112,7 +112,7 @@ class ProductsPage extends StatelessWidget {
                     icon: const Icon(Icons.add_shopping_cart),
                     color: Colors.green,
                     onPressed: () async {
-                      // ✅ Fetch latest stock before adding
+                      // Fetch latest stock before adding
                       await cart.fetchStock(id, productPath);
 
                       cart.addItem(
@@ -121,9 +121,9 @@ class ProductsPage extends StatelessWidget {
                           name: data['name'] ?? '',
                           price: price,
                           quantity: 1,
-                          sellerId: data['sellerId'] ?? '', // ✅ Correct field
+                          sellerId: data['sellerId'] ?? '',
                           image: imageData ?? '',
-                          productPath: productPath,          // ✅ Correct path
+                          productPath: productPath,
                         ),
                       );
 

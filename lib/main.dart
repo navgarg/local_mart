@@ -29,6 +29,12 @@ async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  final user = FirebaseAuth.instance.currentUser;
+  if (user != null) {
+    final provider = OrderProvider();
+    await provider.autoRefreshAllOrders(user.uid);
+  }
+
 
   // ✅ TEMP AUTO LOGIN (REMOVE LATER)
   try {

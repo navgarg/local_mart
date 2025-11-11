@@ -231,7 +231,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('❌ $e')));
+          SnackBar(content: Text('Order failed $e')));
     }
 
     setState(() => _isPlacingOrder = false);
@@ -307,7 +307,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                     )
                         :
 
-                    /// ✅ PICKUP MODE
+                    ///PICKUP MODE
                     FutureBuilder<List<Map<String, dynamic>>>(
                       future: _loadPickupShops(),
                       builder: (context, snap) {

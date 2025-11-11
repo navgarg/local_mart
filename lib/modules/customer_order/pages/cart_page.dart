@@ -24,7 +24,7 @@ class _CartPageState extends State<CartPage> {
   }
 
   // --------------------------------------------------------------------------
-  // 🗺️ Fetch ETA based on user location
+  //  Fetch ETA based on user location
   // --------------------------------------------------------------------------
   Future<void> _fetchEtas() async {
     final cart = Provider.of<CartProvider>(context, listen: false);
@@ -60,7 +60,7 @@ class _CartPageState extends State<CartPage> {
   }
 
   // --------------------------------------------------------------------------
-  // 🏪 Fetch seller name from Firestore (users collection)
+  // Fetch seller name from Firestore (users collection)
   // --------------------------------------------------------------------------
   Future<String> _getSellerName(String sellerId) async {
     try {
@@ -80,7 +80,7 @@ class _CartPageState extends State<CartPage> {
   }
 
   // --------------------------------------------------------------------------
-  // 🖼️ UI
+  //  UI
   // --------------------------------------------------------------------------
   @override
   Widget build(BuildContext context) {
@@ -283,7 +283,7 @@ class _CartPageState extends State<CartPage> {
   );
 
   // --------------------------------------------------------------------------
-  // 🛍️ Empty cart fallback
+  // Empty cart fallback
   // --------------------------------------------------------------------------
   Widget _buildEmptyCart(ThemeData theme, BuildContext context) {
     return Center(

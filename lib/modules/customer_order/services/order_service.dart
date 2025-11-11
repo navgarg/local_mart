@@ -7,7 +7,7 @@ class OrderService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
   // --------------------------------------------------------------------------
-  // 1️⃣ PLACE ORDER
+  // PLACE ORDER
   // --------------------------------------------------------------------------
   Future<void> placeOrder(
       app_models.Order order, {
@@ -27,12 +27,12 @@ class OrderService {
         orderMap['createdAt'] = FieldValue.serverTimestamp();
         orderMap['placedAt'] = FieldValue.serverTimestamp();
 
-        // 2) READ STOCK FOR ALL ITEMS FIRST ✅
+        // 2) READ STOCK FOR ALL ITEMS FIRST
         final Map<DocumentReference, int> stockMap = {};
 
         for (final item in order.items) {
           final productRef = _db.doc(item.productPath);
-          final productSnap = await txn.get(productRef);   // ✅ READ FIRST
+          final productSnap = await txn.get(productRef);   //  READ FIRST
 
           if (!productSnap.exists) {
             throw Exception('Product ${item.productId} not found');
@@ -49,7 +49,7 @@ class OrderService {
           stockMap[productRef] = currentStock; // store read result
         }
 
-        // 3) NOW WRITE STOCK UPDATES ✅
+        // 3) NOW WRITE STOCK UPDATES
         stockMap.forEach((productRef, currentStock) {
           txn.update(productRef, {
             'stock': currentStock - order.items.firstWhere(
@@ -57,18 +57,18 @@ class OrderService {
           });
         });
 
-        // 4) WRITE ORDER LAST ✅
+        // 4) WRITE ORDER LAST
         txn.set(orderRef, orderMap);
       });
     } catch (e, st) {
-      debugPrint('❌ placeOrder failed: $e\n$st');
+      debugPrint('placeOrder failed: $e\n$st');
       rethrow;
     }
   }
 
 
   // --------------------------------------------------------------------------
-  // 2️⃣ FETCH / STREAM USER ORDERS
+  //  FETCH / STREAM USER ORDERS
   // --------------------------------------------------------------------------
   Stream<app_models.Order> orderStream(String userId, String orderId) {
     return _db
@@ -108,9 +108,10 @@ class OrderService {
   }
 
   // --------------------------------------------------------------------------
-  // 3️⃣ RESTORE STOCK ON CANCELLATION
+  // RESTORE STOCK ON CANCELLATION
   // --------------------------------------------------------------------------
-  Future<void> restoreStockForCancelledOrder(app_models.Order order) async {
+  Future<void> restoreStockForCancelledOrder(app_models.Order order, {required String cancelStatus})
+  async {
     final orderRef = _db
         .collection('users')
         .doc(order.userId)
@@ -139,7 +140,7 @@ class OrderService {
         }
 
         txn.update(orderRef, {
-          'status': 'cancelled',
+          'status': cancelStatus,
           'lastUpdatedAt': FieldValue.serverTimestamp(),
         });
       });
@@ -151,7 +152,7 @@ class OrderService {
 
 
   // --------------------------------------------------------------------------
-  // 4️⃣ ETA CALCULATION (GROUPED BY RETAILER)
+  // ETA CALCULATION (GROUPED BY RETAILER)
   // --------------------------------------------------------------------------
   Future<Map<String, String>> calculateEtaForAllRetailers({
     required Map<String, List<app_models.OrderItem>> groupedByRetailer,
@@ -162,7 +163,7 @@ class OrderService {
 
     for (final sellerId in groupedByRetailer.keys) {
       try {
-        // ✅ Get seller data (not product)
+        // Get seller data (not product)
         final sellerDoc = await _db.collection("users").doc(sellerId).get();
         final address = sellerDoc.data()?["address"];
 

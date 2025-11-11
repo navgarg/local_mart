@@ -31,6 +31,8 @@ class _DeliveryTrackingPageState extends State<DeliveryTrackingPage> {
       Future.microtask(() {
         Provider.of<OrderProvider>(context, listen: false)
             .listenToOrder(_userId!, widget.orderId); // ✅ Correct order
+        Provider.of<OrderProvider>(context, listen: false)
+            .maybeAutoAdvanceOrderStatus(_userId!, widget.orderId);
       });
     }
   }
@@ -78,7 +80,8 @@ class _DeliveryTrackingPageState extends State<DeliveryTrackingPage> {
           return RefreshIndicator(
             onRefresh: () async {
               if (_userId != null) {
-                await provider.refreshOrder(widget.orderId, _userId!);
+                await provider.refreshOrder(_userId!, widget.orderId);
+
               }
             },
             child: SingleChildScrollView(
@@ -122,14 +125,13 @@ class _DeliveryTrackingPageState extends State<DeliveryTrackingPage> {
                               ),
                             ],
                           ),
-                          if (order.etaDays != null)
+                          if (order.expectedDelivery != null)
                             Text(
-                              "Delivery by: ${DateTime.now().add(Duration(days: order.etaDays!)).day.toString().padLeft(2,'0')}/"
-                                  "${DateTime.now().add(Duration(days: order.etaDays!)).month.toString().padLeft(2,'0')}/"
-                                  "${DateTime.now().add(Duration(days: order.etaDays!)).year}",
+                              "Delivery by: ${order.expectedDelivery!.day.toString().padLeft(2,'0')}/"
+                                  "${order.expectedDelivery!.month.toString().padLeft(2,'0')}/"
+                                  "${order.expectedDelivery!.year}",
                               style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey.shade600),
                             ),
-
                         ],
                       ),
                     ),

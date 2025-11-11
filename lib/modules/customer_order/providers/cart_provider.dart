@@ -32,7 +32,7 @@ class CartProvider with ChangeNotifier {
       Map.unmodifiable(_perRetailerEstimates);
 
   // --------------------------------------------------------------------------
-  // 🔹 FIX #2: Firestore stock fetching + proper stock limiting
+  // Firestore stock fetching + proper stock limiting
   // --------------------------------------------------------------------------
   Future<void> fetchStock(String productId, String productPath) async {
     try {
@@ -44,7 +44,7 @@ class CartProvider with ChangeNotifier {
       }
       notifyListeners();
     } catch (e) {
-      debugPrint('⚠️ Failed to fetch stock for $productId: $e');
+      debugPrint('Failed to fetch stock for $productId: $e');
     }
   }
 
@@ -127,14 +127,14 @@ class CartProvider with ChangeNotifier {
   }
 
   // --------------------------------------------------------------------------
-  // Order Placement (Fix #3 - receivingMethod naming aligned)
+  // Order Placement
   // --------------------------------------------------------------------------
   Future<void> placeOrder({
     required String userId,
     required String customerName,
     required app_models.Address deliveryAddress,
     required String paymentMethod, // e.g. 'razorpay', 'cod'
-    required String receivingMethod, // ✅ 'delivery' or 'pickup'
+    required String receivingMethod, // 'delivery' or 'pickup'
     Map<String, String>? perRetailerDelivery,
   }) async {
     if (_items.isEmpty) return;
@@ -151,7 +151,7 @@ class CartProvider with ChangeNotifier {
       items: orderItems,
       totalAmount: finalTotal,
       paymentMethod: paymentMethod,
-      receivingMethod: receivingMethod, // ✅ aligned name
+      receivingMethod: receivingMethod,
       status: 'order_placed',
       createdAt: Timestamp.now(),
       placedAt: DateTime.now(),
@@ -210,7 +210,7 @@ class CartProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // ✅ Fix #1: ETA parsing regex refined
+  // ETA parsing
   String get overallEstimate {
     if (_perRetailerEstimates.isEmpty) return 'Calculating...';
 

@@ -25,6 +25,8 @@ class _PickupTrackingPageState extends State<PickupTrackingPage> {
     if (_userId != null) {
       Provider.of<OrderProvider>(context, listen: false)
           .listenToOrder(_userId!, widget.orderId);
+      Provider.of<OrderProvider>(context, listen: false)
+          .maybeAutoAdvanceOrderStatus(_userId!, widget.orderId);
     }
   }
 
@@ -55,7 +57,7 @@ class _PickupTrackingPageState extends State<PickupTrackingPage> {
     final theme = AppTheme.lightTheme;
     final sellerId = order.items.first.sellerId;
 
-    // ✅ Cancel allowed only if still preparing
+    //  Cancel allowed only if still preparing
     final bool canCancel = order.status == "preparing";
 
     return Scaffold(
@@ -70,7 +72,8 @@ class _PickupTrackingPageState extends State<PickupTrackingPage> {
 
       body: RefreshIndicator(
         onRefresh: () async {
-          if (_userId != null) await provider.refreshOrder(widget.orderId, _userId!);
+          if (_userId != null) await provider.refreshOrder(_userId!, widget.orderId);
+
         },
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -121,7 +124,7 @@ class _PickupTrackingPageState extends State<PickupTrackingPage> {
 
               const SizedBox(height: 16),
 
-              /// ✅ PICKUP DATE CARD
+              /// PICKUP DATE CARD
               Card(
                 color: AppTheme.cardColor,
                 shape: RoundedRectangleBorder(
@@ -137,7 +140,7 @@ class _PickupTrackingPageState extends State<PickupTrackingPage> {
 
               const SizedBox(height: 16),
 
-              /// ✅ SHOP ADDRESS
+              /// SHOP ADDRESS
               FutureBuilder(
                 future: _getPickupStoreAddress(sellerId),
                 builder: (context, snap) {
@@ -169,7 +172,7 @@ class _PickupTrackingPageState extends State<PickupTrackingPage> {
 
               const SizedBox(height: 24),
 
-              /// ✅ ITEMS SUMMARY (same style as delivery)
+              /// ITEMS SUMMARY (same style as delivery)
               Card(
                 color: AppTheme.cardColor,
                 shape: RoundedRectangleBorder(
@@ -210,7 +213,7 @@ class _PickupTrackingPageState extends State<PickupTrackingPage> {
 
               const SizedBox(height: 24),
 
-              /// ✅ CANCEL BUTTON (only when allowed)
+              /// CANCEL BUTTON (only when allowed)
               if (canCancel)
                 SizedBox(
                   width: double.infinity,
