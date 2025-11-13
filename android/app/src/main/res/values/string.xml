@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">LocalMart</string>
+    <string name="facebook_app_id">1523740368781683</string>
+    <string name="fb_login_protocol_scheme">fb1523740368781683</string>
+    <string name="facebook_client_token">37b2c85ddeef9935210f08dfa7b72020</string>
+</resources>
