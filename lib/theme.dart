@@ -28,16 +28,8 @@ class AppTheme {
     ),
 
     textTheme: const TextTheme(
-      headlineSmall: TextStyle(
-        fontSize: 22,
-        fontWeight: FontWeight.bold,
-        color: textColor,
-      ),
-      titleMedium: TextStyle(
-        fontSize: 18,
-        fontWeight: FontWeight.w600,
-        color: textColor,
-      ),
+      headlineSmall: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: textColor),
+      titleMedium: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: textColor),
       bodyMedium: TextStyle(fontSize: 16, color: textColor),
       bodySmall: TextStyle(fontSize: 14, color: labelColor),
       labelSmall: TextStyle(fontSize: 12, color: labelColor),
@@ -48,7 +40,9 @@ class AppTheme {
         backgroundColor: primaryColor,
         foregroundColor: Colors.white,
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
       ),
     ),
 
@@ -57,7 +51,9 @@ class AppTheme {
         foregroundColor: primaryColor,
         side: const BorderSide(color: primaryColor),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
       ),
     ),
 
