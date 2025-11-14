@@ -1,11 +1,13 @@
-import 'package:flutter/material.dart';
-import 'dart:typed_data';
 import 'dart:convert';
-import 'package:provider/provider.dart';
+import 'dart:typed_data';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
+import 'package:local_mart/theme.dart';
+import 'package:provider/provider.dart';
+
 import '../models/order_model.dart';
 import '../providers/cart_provider.dart';
-import 'package:local_mart/theme.dart';
 
 class CartItemWidget extends StatelessWidget {
   final OrderItem item;
@@ -46,7 +48,6 @@ class CartItemWidget extends StatelessWidget {
       return "Retailer";
     }
   }
-
 
   Widget _buildImage() {
     final img = item.image ?? '';
@@ -107,87 +108,103 @@ class CartItemWidget extends StatelessWidget {
           ),
           child: Padding(
             padding: const EdgeInsets.all(10),
-            child: Row(children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: _buildImage(),
-              ),
-              const SizedBox(width: 12),
+            child: Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: _buildImage(),
+                ),
+                const SizedBox(width: 12),
 
-              /// TEXT SECTION
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Product name
-                    Text(
-                      item.name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleMedium
-                          ?.copyWith(fontWeight: FontWeight.w600),
-                    ),
-                    const SizedBox(height: 4),
-
-                    // Price × Qty
-                    Text(
-                      '₹${item.price.toStringAsFixed(2)} × ${item.quantity}',
-                      style: TextStyle(
-                        color: AppTheme.primaryColor,
-                        fontWeight: FontWeight.w500,
+                /// TEXT SECTION
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Product name
+                      Text(
+                        item.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w600),
                       ),
-                    ),
-                    const SizedBox(height: 4),
+                      const SizedBox(height: 4),
 
+                      // Price × Qty
+                      Text(
+                        '₹${item.price.toStringAsFixed(2)} × ${item.quantity}',
+                        style: TextStyle(
+                          color: AppTheme.primaryColor,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
 
-                    FutureBuilder<String>(
-                      future: _fetchSellerName(item.sellerId),
-                      initialData: _sellerNameCache[item.sellerId],
-                      builder: (context, snap) {
-                        return Row(
-                          children: [
-                            const Icon(Icons.store, size: 14, color: Colors.grey),
-                            const SizedBox(width: 4),
-                            Expanded(
-                              child: Text(
-                                snap.data ?? "Loading...",
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(color: Colors.grey[700], fontSize: 12),
+                      FutureBuilder<String>(
+                        future: _fetchSellerName(item.sellerId),
+                        initialData: _sellerNameCache[item.sellerId],
+                        builder: (context, snap) {
+                          return Row(
+                            children: [
+                              const Icon(
+                                Icons.store,
+                                size: 14,
+                                color: Colors.grey,
                               ),
-                            ),
-                          ],
-                        );
-                      },
-                    ),
+                              const SizedBox(width: 4),
+                              Expanded(
+                                child: Text(
+                                  snap.data ?? "Loading...",
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    color: Colors.grey[700],
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
 
-                    if (!canAddMore)
-                      Text("Max stock reached",
-                          style: TextStyle(color: Colors.red.shade600, fontSize: 12)),
+                      if (!canAddMore)
+                        Text(
+                          "Max stock reached",
+                          style: TextStyle(
+                            color: Colors.red.shade600,
+                            fontSize: 12,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+
+                /// + / –
+                Column(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.add_circle_outline),
+                      color: canAddMore
+                          ? AppTheme.primaryColor
+                          : Colors.grey[400],
+                      onPressed: canAddMore
+                          ? () => cart.increaseQuantity(item.productId)
+                          : null,
+                    ),
+                    Text(
+                      '${item.quantity}',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.remove_circle_outline),
+                      onPressed: () => cart.decreaseQuantity(item.productId),
+                    ),
                   ],
                 ),
-              ),
-
-              /// + / –
-              Column(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.add_circle_outline),
-                    color: canAddMore ? AppTheme.primaryColor : Colors.grey[400],
-                    onPressed:
-                    canAddMore ? () => cart.increaseQuantity(item.productId) : null,
-                  ),
-                  Text('${item.quantity}',
-                      style: const TextStyle(fontWeight: FontWeight.bold)),
-                  IconButton(
-                    icon: const Icon(Icons.remove_circle_outline),
-                    onPressed: () => cart.decreaseQuantity(item.productId),
-                  ),
-                ],
-              ),
-            ]),
+              ],
+            ),
           ),
         );
       },

@@ -1,6 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../models/order_model.dart' as app_models;
 import '../services/order_service.dart';
 
@@ -70,8 +71,9 @@ class CartProvider with ChangeNotifier {
     if (_items.containsKey(item.productId)) {
       final existing = _items[item.productId]!;
       if (maxStock == 0 || existing.quantity < maxStock) {
-        _items[item.productId] =
-            existing.copyWith(quantity: existing.quantity + 1);
+        _items[item.productId] = existing.copyWith(
+          quantity: existing.quantity + 1,
+        );
       }
     } else {
       _items[item.productId] = item.copyWith(quantity: 1);
@@ -164,10 +166,7 @@ class CartProvider with ChangeNotifier {
       razorpaySignature: null,
     );
 
-    await _orderService.placeOrder(
-      order,
-      perRetailerDelivery: deliveryMap,
-    );
+    await _orderService.placeOrder(order, perRetailerDelivery: deliveryMap);
 
     clear();
   }
@@ -181,7 +180,8 @@ class CartProvider with ChangeNotifier {
   }) async {
     if (_items.isEmpty) return;
 
-    final cacheValid = _lastFetchTime != null &&
+    final cacheValid =
+        _lastFetchTime != null &&
         DateTime.now().difference(_lastFetchTime!) <
             const Duration(minutes: 30);
 
@@ -226,5 +226,3 @@ class CartProvider with ChangeNotifier {
     return '~$maxDays days (by ${DateFormat('d MMM').format(date)})';
   }
 }
-
-

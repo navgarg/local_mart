@@ -35,18 +35,16 @@ Future<void> updateUserCategoryStats(String userId, List<dynamic> items) async {
 
     final Map<String, dynamic> existingStats = snapshot.exists
         ? Map<String, dynamic>.from(
-        (snapshot.data() as Map<String, dynamic>)['categoryStats'] ?? {})
+            (snapshot.data() as Map<String, dynamic>)['categoryStats'] ?? {},
+          )
         : {};
 
     newCounts.forEach((category, count) {
       existingStats[category] = (existingStats[category] ?? 0) + count;
     });
 
-
-    transaction.set(
-      userRef,
-      {'categoryStats': existingStats},
-      SetOptions(merge: true),
-    );
+    transaction.set(userRef, {
+      'categoryStats': existingStats,
+    }, SetOptions(merge: true));
   });
 }

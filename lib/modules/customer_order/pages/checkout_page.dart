@@ -1,16 +1,17 @@
 import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:razorpay_flutter/razorpay_flutter.dart';
-import 'package:provider/provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
+import 'package:local_mart/theme.dart';
+import 'package:provider/provider.dart';
+import 'package:razorpay_flutter/razorpay_flutter.dart';
 
 import '../models/order_model.dart' as models;
 import '../providers/cart_provider.dart';
 import '../providers/order_provider.dart';
-import 'package:local_mart/theme.dart';
 
 extension DateDisplay on DateTime {
   String toDisplayString() =>
@@ -30,7 +31,6 @@ class _CheckoutPageState extends State<CheckoutPage> {
   String _paymentMethod = 'online';
   DateTime? _pickupDate;
   String? _userPhone;
-
 
   bool _isFetchingEta = false;
   bool _isPlacingOrder = false;
@@ -77,8 +77,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
         Map<String, dynamic>.from(doc.data()!['address']),
       );
       _userPhone = data['mobile']?.toString();
-    } catch(_) {}
-      setState(() => _isLoadingAddress = false);
+    } catch (_) {}
+    setState(() => _isLoadingAddress = false);
   }
 
   Future<List<Map<String, dynamic>>> _loadPickupShops() async {
@@ -140,7 +140,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
       Uri.parse("https://api.razorpay.com/v1/orders"),
       headers: {
         "Authorization": "Basic $auth",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
       body: jsonEncode({"amount": amount, "currency": "INR"}),
     );
@@ -152,15 +152,13 @@ class _CheckoutPageState extends State<CheckoutPage> {
   void _handlePaymentSuccess(PaymentSuccessResponse r) =>
       _finalizeOrder(paymentId: r.paymentId);
 
-  void _handlePaymentError(PaymentFailureResponse r) =>
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Payment failed: ${r.message ?? ""}')),
-      );
+  void _handlePaymentError(PaymentFailureResponse r) => ScaffoldMessenger.of(
+    context,
+  ).showSnackBar(SnackBar(content: Text('Payment failed: ${r.message ?? ""}')));
 
-  void _handleExternalWallet(ExternalWalletResponse r) =>
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('External Wallet: ${r.walletName}')),
-      );
+  void _handleExternalWallet(ExternalWalletResponse r) => ScaffoldMessenger.of(
+    context,
+  ).showSnackBar(SnackBar(content: Text('External Wallet: ${r.walletName}')));
 
   Future<void> _finalizeOrder({String? paymentId}) async {
     final cart = Provider.of<CartProvider>(context, listen: false);
@@ -190,8 +188,9 @@ class _CheckoutPageState extends State<CheckoutPage> {
         arguments: orderId,
       );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Order failed: $e')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Order failed: $e')));
     }
   }
 
@@ -218,20 +217,16 @@ class _CheckoutPageState extends State<CheckoutPage> {
           'amount': amount,
           'currency': 'INR',
           'name': 'LocalMart',
-          'prefill': {
-            'contact': _userPhone?? '',
-            'email': user?.email ?? '',
-          },
-            'theme': {
-              'color': '#3F51B5'
-            }
+          'prefill': {'contact': _userPhone ?? '', 'email': user?.email ?? ''},
+          'theme': {'color': '#3F51B5'},
         });
       } else {
         await _finalizeOrder();
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Order failed $e')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Order failed $e')));
     }
 
     setState(() => _isPlacingOrder = false);
@@ -239,7 +234,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
 
   Widget _row(String label, double value, {bool bold = false}) {
     final style = TextStyle(
-        fontWeight: bold ? FontWeight.w700 : FontWeight.w400);
+      fontWeight: bold ? FontWeight.w700 : FontWeight.w400,
+    );
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: Row(
@@ -257,18 +253,19 @@ class _CheckoutPageState extends State<CheckoutPage> {
     final cart = Provider.of<CartProvider>(context);
     final theme = Theme.of(context);
 
-      if (cart.isEmpty) {
-      return const Scaffold(
-        body: Center(child: Text("Cart is empty")),
-      );
+    if (cart.isEmpty) {
+      return const Scaffold(body: Center(child: Text("Cart is empty")));
     }
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Checkout',
+        title: const Text(
+          'Checkout',
           style: const TextStyle(
             color: Colors.white,
-            fontWeight: FontWeight.w600,),),
+            fontWeight: FontWeight.w600,
+          ),
+        ),
         backgroundColor: AppTheme.primaryColor,
       ),
 
@@ -282,85 +279,105 @@ class _CheckoutPageState extends State<CheckoutPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-
                     /// ADDRESS / PICKUP UI
                     (_receivingMethod == 'delivery')
                         ? Card(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                        side: BorderSide(color: AppTheme.borderColor),
-                      ),
-                      child: ListTile(
-                        leading: const Icon(
-                            Icons.location_on, color: AppTheme.primaryColor),
-                        title: _isLoadingAddress
-                            ? const Text("Loading address...")
-                            : (_userAddress != null
-                            ? Text("${_userAddress!.house}, ${_userAddress!
-                            .area}, ${_userAddress!.city}",
-                            style: const TextStyle(fontWeight: FontWeight.w600))
-                            : const Text("No address saved")),
-                        subtitle: _userAddress != null
-                            ? Text("Pincode: ${_userAddress!.pincode}")
-                            : null,
-                      ),
-                    )
-                        :
-
-                    ///PICKUP MODE
-                    FutureBuilder<List<Map<String, dynamic>>>(
-                      future: _loadPickupShops(),
-                      builder: (context, snap) {
-                        if (!snap.hasData) {
-                          return Card(
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(14),
                               side: BorderSide(color: AppTheme.borderColor),
                             ),
-                            child: const ListTile(
-                                leading: CircularProgressIndicator(),
-                                title: Text("Loading pickup locations...")),
-                          );
-                        }
+                            child: ListTile(
+                              leading: const Icon(
+                                Icons.location_on,
+                                color: AppTheme.primaryColor,
+                              ),
+                              title: _isLoadingAddress
+                                  ? const Text("Loading address...")
+                                  : (_userAddress != null
+                                        ? Text(
+                                            "${_userAddress!.house}, ${_userAddress!.area}, ${_userAddress!.city}",
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          )
+                                        : const Text("No address saved")),
+                              subtitle: _userAddress != null
+                                  ? Text("Pincode: ${_userAddress!.pincode}")
+                                  : null,
+                            ),
+                          )
+                        :
+                          ///PICKUP MODE
+                          FutureBuilder<List<Map<String, dynamic>>>(
+                            future: _loadPickupShops(),
+                            builder: (context, snap) {
+                              if (!snap.hasData) {
+                                return Card(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                    side: BorderSide(
+                                      color: AppTheme.borderColor,
+                                    ),
+                                  ),
+                                  child: const ListTile(
+                                    leading: CircularProgressIndicator(),
+                                    title: Text("Loading pickup locations..."),
+                                  ),
+                                );
+                              }
 
-                        final shops = snap.data!;
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text("Pickup Locations",
-                                style: TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.w600)),
-                            const SizedBox(height: 8),
-                            ...shops.map((shop) {
-                              final addr = shop["address"];
-                              return Card(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(14),
-                                  side: BorderSide(color: AppTheme.borderColor),
-                                ),
-                                child: ListTile(
-                                  leading: const Icon(Icons.store,
-                                      color: AppTheme.primaryColor),
-                                  title: Text(shop["name"],
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.w700)),
-                                  subtitle: (addr != null)
-                                      ? Text(
-                                      "${addr['area']}, ${addr['city']} (${addr['pincode']})")
-                                      : const Text("Address not available"),
-                                ),
+                              final shops = snap.data!;
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    "Pickup Locations",
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  ...shops.map((shop) {
+                                    final addr = shop["address"];
+                                    return Card(
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(14),
+                                        side: BorderSide(
+                                          color: AppTheme.borderColor,
+                                        ),
+                                      ),
+                                      child: ListTile(
+                                        leading: const Icon(
+                                          Icons.store,
+                                          color: AppTheme.primaryColor,
+                                        ),
+                                        title: Text(
+                                          shop["name"],
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                        subtitle: (addr != null)
+                                            ? Text(
+                                                "${addr['area']}, ${addr['city']} (${addr['pincode']})",
+                                              )
+                                            : const Text(
+                                                "Address not available",
+                                              ),
+                                      ),
+                                    );
+                                  }),
+                                ],
                               );
-                            }),
-                          ],
-                        );
-                      },
-                    ),
+                            },
+                          ),
 
                     /// RECEIVING METHOD BUTTONS
-                    Text("Receiving Method", style: Theme
-                        .of(context)
-                        .textTheme
-                        .titleMedium),
+                    Text(
+                      "Receiving Method",
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
                     const SizedBox(height: 10),
                     Row(
                       children: [
@@ -376,11 +393,13 @@ class _CheckoutPageState extends State<CheckoutPage> {
                             child: Container(
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               decoration: BoxDecoration(
-                                color: _receivingMethod == 'delivery' ? AppTheme
-                                    .primaryColor : Colors.white,
+                                color: _receivingMethod == 'delivery'
+                                    ? AppTheme.primaryColor
+                                    : Colors.white,
                                 borderRadius: BorderRadius.circular(10),
                                 border: Border.all(
-                                    color: AppTheme.primaryColor),
+                                  color: AppTheme.primaryColor,
+                                ),
                               ),
                               child: Center(
                                 child: Text(
@@ -404,19 +423,22 @@ class _CheckoutPageState extends State<CheckoutPage> {
                             child: Container(
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               decoration: BoxDecoration(
-                                color: _receivingMethod == 'pickup' ? AppTheme
-                                    .primaryColor : Colors.white,
+                                color: _receivingMethod == 'pickup'
+                                    ? AppTheme.primaryColor
+                                    : Colors.white,
                                 borderRadius: BorderRadius.circular(10),
                                 border: Border.all(
-                                    color: AppTheme.primaryColor),
+                                  color: AppTheme.primaryColor,
+                                ),
                               ),
                               child: Center(
                                 child: Text(
                                   "Pickup",
                                   style: TextStyle(
                                     fontWeight: FontWeight.w600,
-                                    color: _receivingMethod == 'pickup' ? Colors
-                                        .white : AppTheme.primaryColor,
+                                    color: _receivingMethod == 'pickup'
+                                        ? Colors.white
+                                        : AppTheme.primaryColor,
                                   ),
                                 ),
                               ),
@@ -435,10 +457,13 @@ class _CheckoutPageState extends State<CheckoutPage> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          _isFetchingEta ? "Calculating ETA..." : "Delivery in: ${cart
-                              .overallEstimate}",
-                          style: const TextStyle(color: AppTheme.primaryColor,
-                              fontWeight: FontWeight.w600),
+                          _isFetchingEta
+                              ? "Calculating ETA..."
+                              : "Delivery in: ${cart.overallEstimate}",
+                          style: const TextStyle(
+                            color: AppTheme.primaryColor,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ],
@@ -454,14 +479,16 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                   : "Pickup: ${_pickupDate!.toDisplayString()}",
                               style: TextStyle(
                                 fontWeight: FontWeight.w600,
-                                color: _pickupDate == null ? Colors.red : Colors
-                                    .green,
+                                color: _pickupDate == null
+                                    ? Colors.red
+                                    : Colors.green,
                               ),
                             ),
                           ),
                           OutlinedButton(
-                              onPressed: _selectPickupDate, child: const Text(
-                              "Select")),
+                            onPressed: _selectPickupDate,
+                            child: const Text("Select"),
+                          ),
                         ],
                       ),
                     ],
@@ -469,10 +496,10 @@ class _CheckoutPageState extends State<CheckoutPage> {
                     const SizedBox(height: 20),
 
                     /// PAYMENT METHOD
-                    Text("Payment Method", style: Theme
-                        .of(context)
-                        .textTheme
-                        .titleMedium),
+                    Text(
+                      "Payment Method",
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
                     const SizedBox(height: 6),
                     RadioListTile(
                       value: 'online',
@@ -489,10 +516,10 @@ class _CheckoutPageState extends State<CheckoutPage> {
                       ),
 
                     /// ITEM SUMMARY
-                    Text("Items Summary", style: Theme
-                        .of(context)
-                        .textTheme
-                        .titleMedium),
+                    Text(
+                      "Items Summary",
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
                     const SizedBox(height: 8),
                     Card(
                       shape: RoundedRectangleBorder(
@@ -503,15 +530,18 @@ class _CheckoutPageState extends State<CheckoutPage> {
                         padding: const EdgeInsets.all(14),
                         child: Column(
                           children: [
-                            ...cart.items.map((it) =>
-                                Row(
-                                  children: [
-                                    Expanded(child: Text(
-                                        "${it.name} × ${it.quantity}")),
-                                    Text("₹${(it.price * it.quantity)
-                                        .toStringAsFixed(2)}"),
-                                  ],
-                                )),
+                            ...cart.items.map(
+                              (it) => Row(
+                                children: [
+                                  Expanded(
+                                    child: Text("${it.name} × ${it.quantity}"),
+                                  ),
+                                  Text(
+                                    "₹${(it.price * it.quantity).toStringAsFixed(2)}",
+                                  ),
+                                ],
+                              ),
+                            ),
                             const Divider(),
                             _row("Subtotal", cart.total),
                             _row("GST (5%)", cart.gst),
@@ -524,12 +554,14 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                 Text(
                                   'Final Total',
                                   style: theme.textTheme.titleMedium?.copyWith(
-                                      fontWeight: FontWeight.bold),
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                                 Text(
                                   '₹${cart.finalTotal.toStringAsFixed(2)}',
                                   style: theme.textTheme.titleMedium?.copyWith(
-                                      fontWeight: FontWeight.bold),
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ],
                             ),
@@ -551,13 +583,17 @@ class _CheckoutPageState extends State<CheckoutPage> {
                 top: false,
                 child: Container(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 18, vertical: 14),
+                    horizontal: 18,
+                    vertical: 14,
+                  ),
                   decoration: const BoxDecoration(
                     color: Colors.white,
                     boxShadow: [
-                      BoxShadow(color: Colors.black12,
-                          blurRadius: 6,
-                          offset: Offset(0, -3))
+                      BoxShadow(
+                        color: Colors.black12,
+                        blurRadius: 6,
+                        offset: Offset(0, -3),
+                      ),
                     ],
                   ),
                   child: Row(
@@ -566,25 +602,35 @@ class _CheckoutPageState extends State<CheckoutPage> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text("Total Payable", style: TextStyle(
-                              color: Colors.grey)),
-                          Text("₹${cart.finalTotal.toStringAsFixed(2)}",
-                              style: const TextStyle(
-                                  fontSize: 20, fontWeight: FontWeight.w700)),
+                          const Text(
+                            "Total Payable",
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                          Text(
+                            "₹${cart.finalTotal.toStringAsFixed(2)}",
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
                         ],
                       ),
                       ElevatedButton(
                         onPressed: _isPlacingOrder ? null : _placeOrder,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppTheme.primaryColor,
-                          padding: const EdgeInsets.symmetric(horizontal: 28,
-                              vertical: 14),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 28,
+                            vertical: 14,
+                          ),
                         ),
                         child: Text(
-                            _isPlacingOrder ? "Processing..." : "Place Order",
-                             style: const TextStyle(
-                                 color: Colors.white,
-                                 fontWeight: FontWeight.w600,),),
+                          _isPlacingOrder ? "Processing..." : "Place Order",
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -597,5 +643,3 @@ class _CheckoutPageState extends State<CheckoutPage> {
     );
   }
 }
-
-

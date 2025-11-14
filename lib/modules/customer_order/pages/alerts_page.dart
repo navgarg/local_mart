@@ -17,10 +17,13 @@ class AlertsPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Alerts",
+        title: const Text(
+          "Alerts",
           style: const TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.w600,),),
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
         backgroundColor: AppTheme.primaryColor,
       ),
       body: StreamBuilder<QuerySnapshot>(
@@ -31,7 +34,8 @@ class AlertsPage extends StatelessWidget {
             .orderBy('timestamp', descending: true)
             .snapshots(),
         builder: (context, snapshot) {
-          if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+          if (!snapshot.hasData)
+            return const Center(child: CircularProgressIndicator());
 
           final notifications = snapshot.data!.docs;
 
@@ -86,11 +90,15 @@ class AlertsPage extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(title,
-                                style: TextStyle(
-                                  fontWeight: read ? FontWeight.w500 : FontWeight.bold,
-                                  fontSize: 16,
-                                )),
+                            Text(
+                              title,
+                              style: TextStyle(
+                                fontWeight: read
+                                    ? FontWeight.w500
+                                    : FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
 
                             const SizedBox(height: 4),
                             Text(message, style: const TextStyle(fontSize: 14)),
@@ -98,7 +106,10 @@ class AlertsPage extends StatelessWidget {
                             // DISPLAY ORDER ID HERE
                             Text(
                               "Order ID: $orderId",
-                              style: TextStyle(fontSize: 13, color: Colors.grey.shade700),
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.grey.shade700,
+                              ),
                             ),
 
                             if (timestamp != null)
@@ -107,7 +118,9 @@ class AlertsPage extends StatelessWidget {
                                 child: Text(
                                   "${timestamp.day}/${timestamp.month}/${timestamp.year}  ${timestamp.hour}:${timestamp.minute.toString().padLeft(2, '0')}",
                                   style: TextStyle(
-                                      fontSize: 12, color: Colors.grey.shade600),
+                                    fontSize: 12,
+                                    color: Colors.grey.shade600,
+                                  ),
                                 ),
                               ),
                           ],
@@ -124,4 +137,3 @@ class AlertsPage extends StatelessWidget {
     );
   }
 }
-

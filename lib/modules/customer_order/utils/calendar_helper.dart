@@ -1,10 +1,11 @@
 import 'package:device_calendar/device_calendar.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tzdata;
+import 'package:timezone/timezone.dart' as tz;
 
 class CalendarHelper {
-  static final DeviceCalendarPlugin _deviceCalendarPlugin = DeviceCalendarPlugin();
+  static final DeviceCalendarPlugin _deviceCalendarPlugin =
+      DeviceCalendarPlugin();
 
   static bool _tzInitialized = false;
 
@@ -29,7 +30,7 @@ class CalendarHelper {
     // Get available calendars
     final calendarsResult = await _deviceCalendarPlugin.retrieveCalendars();
     final calendar = calendarsResult.data?.firstWhere(
-          (c) => c.isDefault ?? false,
+      (c) => c.isDefault ?? false,
       orElse: () => calendarsResult.data!.first,
     );
 
@@ -38,7 +39,10 @@ class CalendarHelper {
     // Convert DateTime to timezone-aware TZDateTime
     final location = tz.local;
     final startTime = tz.TZDateTime.from(date, location);
-    final endTime = tz.TZDateTime.from(date.add(const Duration(hours: 1)), location);
+    final endTime = tz.TZDateTime.from(
+      date.add(const Duration(hours: 1)),
+      location,
+    );
 
     // Create event
     final event = Event(
@@ -53,4 +57,3 @@ class CalendarHelper {
     await _deviceCalendarPlugin.createOrUpdateEvent(event);
   }
 }
-

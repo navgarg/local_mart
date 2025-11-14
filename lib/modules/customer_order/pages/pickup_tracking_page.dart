@@ -1,10 +1,10 @@
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../providers/order_provider.dart';
-import '../models/order_model.dart' as models;
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:local_mart/theme.dart';
+import 'package:provider/provider.dart';
+
+import '../providers/order_provider.dart';
 
 class PickupTrackingPage extends StatefulWidget {
   final String orderId;
@@ -23,10 +23,14 @@ class _PickupTrackingPageState extends State<PickupTrackingPage> {
     super.initState();
     _userId = FirebaseAuth.instance.currentUser?.uid;
     if (_userId != null) {
-      Provider.of<OrderProvider>(context, listen: false)
-          .listenToOrder(_userId!, widget.orderId);
-      Provider.of<OrderProvider>(context, listen: false)
-          .maybeAutoAdvanceOrderStatus(_userId!, widget.orderId);
+      Provider.of<OrderProvider>(
+        context,
+        listen: false,
+      ).listenToOrder(_userId!, widget.orderId);
+      Provider.of<OrderProvider>(
+        context,
+        listen: false,
+      ).maybeAutoAdvanceOrderStatus(_userId!, widget.orderId);
     }
   }
 
@@ -37,7 +41,10 @@ class _PickupTrackingPageState extends State<PickupTrackingPage> {
   }
 
   Future<Map<String, dynamic>?> _getPickupStoreAddress(String sellerId) async {
-    final doc = await FirebaseFirestore.instance.collection("users").doc(sellerId).get();
+    final doc = await FirebaseFirestore.instance
+        .collection("users")
+        .doc(sellerId)
+        .get();
     return doc.data()?["address"];
   }
 
@@ -62,18 +69,21 @@ class _PickupTrackingPageState extends State<PickupTrackingPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Order Tracking",
+        title: const Text(
+          "Order Tracking",
           style: const TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.w600,),),
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
         backgroundColor: AppTheme.primaryColor,
         foregroundColor: theme.appBarTheme.foregroundColor,
       ),
 
       body: RefreshIndicator(
         onRefresh: () async {
-          if (_userId != null) await provider.refreshOrder(_userId!, widget.orderId);
-
+          if (_userId != null)
+            await provider.refreshOrder(_userId!, widget.orderId);
         },
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -95,9 +105,8 @@ class _PickupTrackingPageState extends State<PickupTrackingPage> {
                     children: [
                       Text(
                         "Order #${order.id.substring(0, 6).toUpperCase()}",
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 6),
                       Row(
@@ -132,7 +141,10 @@ class _PickupTrackingPageState extends State<PickupTrackingPage> {
                   side: const BorderSide(color: AppTheme.borderColor),
                 ),
                 child: ListTile(
-                  leading: const Icon(Icons.event, color: AppTheme.primaryColor),
+                  leading: const Icon(
+                    Icons.event,
+                    color: AppTheme.primaryColor,
+                  ),
                   title: const Text("Pickup Date"),
                   subtitle: Text(_formatPickupDate(order.pickupDate)),
                 ),
@@ -155,9 +167,14 @@ class _PickupTrackingPageState extends State<PickupTrackingPage> {
                       side: const BorderSide(color: AppTheme.borderColor),
                     ),
                     child: ListTile(
-                      leading: const Icon(Icons.store, color: AppTheme.primaryColor),
+                      leading: const Icon(
+                        Icons.store,
+                        color: AppTheme.primaryColor,
+                      ),
                       title: const Text("Pickup Store"),
-                      subtitle: Text("${addr['area']}, ${addr['city']} - ${addr['pincode']}"),
+                      subtitle: Text(
+                        "${addr['area']}, ${addr['city']} - ${addr['pincode']}",
+                      ),
                     ),
                   );
                 },
@@ -186,22 +203,32 @@ class _PickupTrackingPageState extends State<PickupTrackingPage> {
                     children: [
                       Text("Items", style: theme.textTheme.titleMedium),
                       const SizedBox(height: 8),
-                      ...order.items.map((it) => Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(child: Text("${it.name} x ${it.quantity}")),
-                            Text("₹${(it.price * it.quantity).toStringAsFixed(2)}"),
-                          ],
+                      ...order.items.map(
+                        (it) => Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Text("${it.name} x ${it.quantity}"),
+                              ),
+                              Text(
+                                "₹${(it.price * it.quantity).toStringAsFixed(2)}",
+                              ),
+                            ],
+                          ),
                         ),
-                      )),
+                      ),
                       const Divider(),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text("Total:", style: TextStyle(fontWeight: FontWeight.bold)),
-                          Text("₹${order.totalAmount.toStringAsFixed(2)}",
+                          const Text(
+                            "Total:",
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            "₹${order.totalAmount.toStringAsFixed(2)}",
                             style: theme.textTheme.titleMedium,
                           ),
                         ],
@@ -218,28 +245,57 @@ class _PickupTrackingPageState extends State<PickupTrackingPage> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: _isCancelling ? null : () async {
-                      final confirm = await showDialog<bool>(
-                        context: context,
-                        builder: (_) => AlertDialog(
-                          title: const Text("Cancel Pickup?"),
-                          content: const Text("Are you sure you want to cancel this pickup order?"),
-                          actions: [
-                            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("No")),
-                            TextButton(onPressed: () => Navigator.pop(context, true), child: const Text("Yes")),
-                          ],
-                        ),
-                      );
-                      if (confirm != true) return;
-                      setState(() => _isCancelling = true);
-                      await provider.cancelPickupOrder(order.id, _userId!);
-                      setState(() => _isCancelling = false);
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Pickup Cancelled")));
-                    },
-                    style: ElevatedButton.styleFrom(backgroundColor: AppTheme.errorColor),
+                    onPressed: _isCancelling
+                        ? null
+                        : () async {
+                            final confirm = await showDialog<bool>(
+                              context: context,
+                              builder: (_) => AlertDialog(
+                                title: const Text("Cancel Pickup?"),
+                                content: const Text(
+                                  "Are you sure you want to cancel this pickup order?",
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () =>
+                                        Navigator.pop(context, false),
+                                    child: const Text("No"),
+                                  ),
+                                  TextButton(
+                                    onPressed: () =>
+                                        Navigator.pop(context, true),
+                                    child: const Text("Yes"),
+                                  ),
+                                ],
+                              ),
+                            );
+                            if (confirm != true) return;
+                            setState(() => _isCancelling = true);
+                            await provider.cancelPickupOrder(
+                              order.id,
+                              _userId!,
+                            );
+                            setState(() => _isCancelling = false);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text("Pickup Cancelled")),
+                            );
+                          },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.errorColor,
+                    ),
                     child: _isCancelling
-                        ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                        : const Text("Cancel Pickup", style: TextStyle(color: Colors.white)),
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : const Text(
+                            "Cancel Pickup",
+                            style: TextStyle(color: Colors.white),
+                          ),
                   ),
                 )
               else
@@ -280,21 +336,34 @@ class _PickupStatusTimeline extends StatelessWidget {
                 children: [
                   CircleAvatar(
                     radius: 14,
-                    backgroundColor: active ? AppTheme.successColor : Colors.grey.shade300,
-                    child: Icon(active ? Icons.check : Icons.circle,
-                        size: 14, color: active ? Colors.white : Colors.grey),
+                    backgroundColor: active
+                        ? AppTheme.successColor
+                        : Colors.grey.shade300,
+                    child: Icon(
+                      active ? Icons.check : Icons.circle,
+                      size: 14,
+                      color: active ? Colors.white : Colors.grey,
+                    ),
                   ),
                   if (i != steps.length - 1)
-                    Container(width: 3, height: 50, color: active ? AppTheme.successColor : Colors.grey.shade300),
+                    Container(
+                      width: 3,
+                      height: 50,
+                      color: active
+                          ? AppTheme.successColor
+                          : Colors.grey.shade300,
+                    ),
                 ],
               ),
               const SizedBox(width: 12),
-              Text(step["label"]!,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: active ? FontWeight.bold : FontWeight.normal,
-                    color: active ? AppTheme.successColor : Colors.grey.shade600,
-                  )),
+              Text(
+                step["label"]!,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: active ? FontWeight.bold : FontWeight.normal,
+                  color: active ? AppTheme.successColor : Colors.grey.shade600,
+                ),
+              ),
             ],
           ),
         );
@@ -320,7 +389,10 @@ class _CancellationInfo extends StatelessWidget {
         children: const [
           Icon(Icons.info_outline, color: Colors.grey),
           SizedBox(width: 8),
-          Text("Pickup cannot be cancelled after preparation.", style: TextStyle(color: Colors.grey)),
+          Text(
+            "Pickup cannot be cancelled after preparation.",
+            style: TextStyle(color: Colors.grey),
+          ),
         ],
       ),
     );

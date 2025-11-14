@@ -1,7 +1,7 @@
 // lib/models/order_model.dart
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:typed_data';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 /// ---------------- ORDER ITEM ----------------
 class OrderItem {
@@ -10,7 +10,7 @@ class OrderItem {
   final double price; // price per unit (INR)
   final int quantity; // user-selected quantity (ordered quantity)
   final int? stock; // optional: total available stock in DB
-  final String sellerId;// maps to users/{sellerId}
+  final String sellerId; // maps to users/{sellerId}
   final String? image;
   final String productPath;
   Uint8List? cachedImageBytes;
@@ -123,7 +123,8 @@ class Order {
   final double totalAmount; // total payable (INR)
   final String paymentMethod; // e.g. 'razorpay', 'cod'
   final String receivingMethod; // 'home_delivery' / 'self_pickup'
-  final String status; // e.g. 'order_placed', 'preparing', 'ready', 'in_transit', 'delivered'
+  final String
+  status; // e.g. 'order_placed', 'preparing', 'ready', 'in_transit', 'delivered'
   final Timestamp createdAt; // server timestamp stored
   final DateTime placedAt; // convenience parsed DateTime (from Timestamp)
   final DateTime? pickupDate; // optional
@@ -132,7 +133,8 @@ class Order {
   final String? razorpayOrderId; // server-side created order id (Razorpay)
   final String? razorpayPaymentId; // payment id after success
   final String? razorpaySignature; // signature (verify on server)
-  final Map<String, dynamic> perRetailerDelivery; // flexible map: {sellerId: {...}}
+  final Map<String, dynamic>
+  perRetailerDelivery; // flexible map: {sellerId: {...}}
 
   Order({
     required this.id,
@@ -208,12 +210,14 @@ class Order {
     'paymentMethod': paymentMethod,
     'receivingMethod': receivingMethod,
     'status': status,
-    'createdAt': createdAt, // Timestamp (use FieldValue.serverTimestamp() when creating)
+    'createdAt':
+        createdAt, // Timestamp (use FieldValue.serverTimestamp() when creating)
     'placedAt': Timestamp.fromDate(placedAt),
     'pickupDate': pickupDate != null ? Timestamp.fromDate(pickupDate!) : null,
     'etaDays': etaDays,
-    'expectedDelivery':
-    expectedDelivery != null ? Timestamp.fromDate(expectedDelivery!) : null,
+    'expectedDelivery': expectedDelivery != null
+        ? Timestamp.fromDate(expectedDelivery!)
+        : null,
     'razorpayOrderId': razorpayOrderId,
     'razorpayPaymentId': razorpayPaymentId,
     'razorpaySignature': razorpaySignature,
@@ -234,7 +238,9 @@ class Order {
 
     // createdAt may be a Timestamp or absent — default to now if missing
     final createdAtVal = data['createdAt'];
-    final createdAtTs = createdAtVal is Timestamp ? createdAtVal : Timestamp.now();
+    final createdAtTs = createdAtVal is Timestamp
+        ? createdAtVal
+        : Timestamp.now();
 
     // placedAt could be Timestamp, String or missing
     final placedAtVal = data['placedAt'];
@@ -242,12 +248,17 @@ class Order {
 
     Map<String, dynamic> perRetailer = {};
     if (data['perRetailerDelivery'] is Map) {
-      perRetailer = Map<String, dynamic>.from(data['perRetailerDelivery'] as Map);
+      perRetailer = Map<String, dynamic>.from(
+        data['perRetailerDelivery'] as Map,
+      );
     }
 
-    final itemsList = (data['items'] as List<dynamic>?)
-        ?.map((e) => OrderItem.fromJson(Map<String, dynamic>.from(e as Map)))
-        .toList() ??
+    final itemsList =
+        (data['items'] as List<dynamic>?)
+            ?.map(
+              (e) => OrderItem.fromJson(Map<String, dynamic>.from(e as Map)),
+            )
+            .toList() ??
         <OrderItem>[];
 
     final addressMap = data['deliveryAddress'] as Map<String, dynamic>? ?? {};
@@ -264,10 +275,13 @@ class Order {
       status: data['status'] ?? 'order_placed',
       createdAt: createdAtTs,
       placedAt: placedAtDt,
-      pickupDate: data['pickupDate'] != null ? _parseDate(data['pickupDate']) : null,
+      pickupDate: data['pickupDate'] != null
+          ? _parseDate(data['pickupDate'])
+          : null,
       etaDays: (data['etaDays'] as num?)?.toInt(),
-      expectedDelivery:
-      data['expectedDelivery'] != null ? _parseDate(data['expectedDelivery']) : null,
+      expectedDelivery: data['expectedDelivery'] != null
+          ? _parseDate(data['expectedDelivery'])
+          : null,
       razorpayOrderId: data['razorpayOrderId'],
       razorpayPaymentId: data['razorpayPaymentId'],
       razorpaySignature: data['razorpaySignature'],

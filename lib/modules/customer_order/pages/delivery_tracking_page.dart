@@ -1,10 +1,12 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+
 import 'package:firebase_auth/firebase_auth.dart';
-import '../providers/order_provider.dart';
-import '../models/order_model.dart';
+import 'package:flutter/material.dart';
 import 'package:local_mart/theme.dart';
+import 'package:provider/provider.dart';
+
+import '../models/order_model.dart';
+import '../providers/order_provider.dart';
 
 class DeliveryTrackingPage extends StatefulWidget {
   final String orderId;
@@ -22,6 +24,7 @@ class _DeliveryTrackingPageState extends State<DeliveryTrackingPage> {
     final end = id.length < 6 ? id.length : 6;
     return id.substring(0, end).toUpperCase();
   }
+
   @override
   void initState() {
     super.initState();
@@ -29,14 +32,17 @@ class _DeliveryTrackingPageState extends State<DeliveryTrackingPage> {
     _userId = user?.uid;
     if (_userId != null) {
       Future.microtask(() {
-        Provider.of<OrderProvider>(context, listen: false)
-            .listenToOrder(_userId!, widget.orderId); // ✅ Correct order
-        Provider.of<OrderProvider>(context, listen: false)
-            .maybeAutoAdvanceOrderStatus(_userId!, widget.orderId);
+        Provider.of<OrderProvider>(
+          context,
+          listen: false,
+        ).listenToOrder(_userId!, widget.orderId); // ✅ Correct order
+        Provider.of<OrderProvider>(
+          context,
+          listen: false,
+        ).maybeAutoAdvanceOrderStatus(_userId!, widget.orderId);
       });
     }
   }
-
 
   @override
   void dispose() {
@@ -44,18 +50,20 @@ class _DeliveryTrackingPageState extends State<DeliveryTrackingPage> {
     super.dispose();
   }
 
-
   @override
   Widget build(BuildContext context) {
     final theme = AppTheme.lightTheme;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Delivery Tracking',
+        title: const Text(
+          'Delivery Tracking',
           style: const TextStyle(
             color: Colors.white,
-            fontWeight: FontWeight.w600,),),
-        backgroundColor:AppTheme.primaryColor,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        backgroundColor: AppTheme.primaryColor,
         foregroundColor: theme.appBarTheme.foregroundColor,
       ),
       body: Consumer<OrderProvider>(
@@ -65,23 +73,22 @@ class _DeliveryTrackingPageState extends State<DeliveryTrackingPage> {
             return const Center(child: CircularProgressIndicator());
           }
 
-          final label = {
-            'order_placed': 'Order Placed',
-            'shipped': 'Shipped',
-            'out_for_delivery': 'Out for Delivery',
-            'delivered': 'Delivered',
-            'cancelled': 'Cancelled'
-          }[order.status] ??
+          final label =
+              {
+                'order_placed': 'Order Placed',
+                'shipped': 'Shipped',
+                'out_for_delivery': 'Out for Delivery',
+                'delivered': 'Delivered',
+                'cancelled': 'Cancelled',
+              }[order.status] ??
               order.status;
 
           final bool canCancel = order.status == "order_placed";
-
 
           return RefreshIndicator(
             onRefresh: () async {
               if (_userId != null) {
                 await provider.refreshOrder(_userId!, widget.orderId);
-
               }
             },
             child: SingleChildScrollView(
@@ -102,15 +109,20 @@ class _DeliveryTrackingPageState extends State<DeliveryTrackingPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text("Order #${shortOrderCode(order.id)}",
-                            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                          Text(
+                            "Order #${shortOrderCode(order.id)}",
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
 
                           const SizedBox(height: 6),
                           Row(
                             children: [
-                              const Icon(Icons.local_shipping_outlined,
-                                  color: AppTheme.primaryColor),
+                              const Icon(
+                                Icons.local_shipping_outlined,
+                                color: AppTheme.primaryColor,
+                              ),
                               const SizedBox(width: 8),
                               Text(
                                 label,
@@ -127,10 +139,12 @@ class _DeliveryTrackingPageState extends State<DeliveryTrackingPage> {
                           ),
                           if (order.expectedDelivery != null)
                             Text(
-                              "Delivery by: ${order.expectedDelivery!.day.toString().padLeft(2,'0')}/"
-                                  "${order.expectedDelivery!.month.toString().padLeft(2,'0')}/"
-                                  "${order.expectedDelivery!.year}",
-                              style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey.shade600),
+                              "Delivery by: ${order.expectedDelivery!.day.toString().padLeft(2, '0')}/"
+                              "${order.expectedDelivery!.month.toString().padLeft(2, '0')}/"
+                              "${order.expectedDelivery!.year}",
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: Colors.grey.shade600,
+                              ),
                             ),
                         ],
                       ),
@@ -143,8 +157,6 @@ class _DeliveryTrackingPageState extends State<DeliveryTrackingPage> {
                   _AddressCard(order.deliveryAddress),
 
                   const SizedBox(height: 16),
-
-
 
                   Text("Order Progress", style: theme.textTheme.titleMedium),
                   const SizedBox(height: 8),
@@ -164,10 +176,18 @@ class _DeliveryTrackingPageState extends State<DeliveryTrackingPage> {
                           context: context,
                           builder: (ctx) => AlertDialog(
                             title: const Text('Cancel Order?'),
-                            content: const Text('Are you sure you want to cancel this order?'),
+                            content: const Text(
+                              'Are you sure you want to cancel this order?',
+                            ),
                             actions: [
-                              TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('No')),
-                              TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Yes')),
+                              TextButton(
+                                onPressed: () => Navigator.pop(ctx, false),
+                                child: const Text('No'),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.pop(ctx, true),
+                                child: const Text('Yes'),
+                              ),
                             ],
                           ),
                         );
@@ -175,7 +195,7 @@ class _DeliveryTrackingPageState extends State<DeliveryTrackingPage> {
                         if (confirm == true && _userId != null) {
                           setState(() => _isCancelling = true);
                           try {
-                            await provider.cancelOrder(_userId!,order.id);
+                            await provider.cancelOrder(_userId!, order.id);
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(content: Text('Order cancelled')),
                             );
@@ -191,7 +211,6 @@ class _DeliveryTrackingPageState extends State<DeliveryTrackingPage> {
                     )
                   else
                     _CancellationInfo(),
-
                 ],
               ),
             ),
@@ -246,7 +265,7 @@ class _ItemsCard extends StatelessWidget {
 
             /// ✅ FIXED ITEM DISPLAY (no overflow)
             ...order.items.map(
-                  (it) => Padding(
+              (it) => Padding(
                 padding: const EdgeInsets.symmetric(vertical: 4),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -274,11 +293,16 @@ class _ItemsCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text("Total:",
-                    style: theme.textTheme.titleSmall
-                        ?.copyWith(fontWeight: FontWeight.bold)),
-                Text("₹${order.totalAmount.toStringAsFixed(2)}",
-                    style: theme.textTheme.titleMedium),
+                Text(
+                  "Total:",
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  "₹${order.totalAmount.toStringAsFixed(2)}",
+                  style: theme.textTheme.titleMedium,
+                ),
               ],
             ),
           ],
@@ -287,6 +311,7 @@ class _ItemsCard extends StatelessWidget {
     );
   }
 }
+
 class _StatusTimeline extends StatelessWidget {
   final String status;
   const _StatusTimeline({required this.status});
@@ -349,8 +374,9 @@ class _StatusTimeline extends StatelessWidget {
                     step["label"]!,
                     style: TextStyle(
                       fontSize: 16, // ✅ Larger text
-                      fontWeight:
-                      isCompleted ? FontWeight.bold : FontWeight.normal,
+                      fontWeight: isCompleted
+                          ? FontWeight.bold
+                          : FontWeight.normal,
                       color: isCompleted
                           ? AppTheme.successColor
                           : Colors.grey.shade600,
@@ -383,13 +409,13 @@ class _CancelButton extends StatelessWidget {
         ),
         child: isCancelling
             ? const SizedBox(
-          width: 20,
-          height: 20,
-          child: CircularProgressIndicator(
-            color: Colors.white,
-            strokeWidth: 2,
-          ),
-        )
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2,
+                ),
+              )
             : const Text('Cancel Order', style: TextStyle(color: Colors.white)),
       ),
     );
@@ -421,5 +447,3 @@ class _CancellationInfo extends StatelessWidget {
     );
   }
 }
-
-

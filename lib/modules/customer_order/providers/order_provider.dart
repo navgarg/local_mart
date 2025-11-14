@@ -1,13 +1,15 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
-import 'package:uuid/uuid.dart';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:emailjs/emailjs.dart' as emailjs;
+import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:uuid/uuid.dart';
+
 import '../models/order_model.dart' as models;
 import '../services/order_service.dart';
 import '../utils/calendar_helper.dart';
 import '../utils/notification_helper.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:emailjs/emailjs.dart' as emailjs;
 import '../utils/user_category_stats.dart';
 
 class OrderProvider with ChangeNotifier {
@@ -41,13 +43,13 @@ class OrderProvider with ChangeNotifier {
           .doc(userId)
           .collection('notifications')
           .add({
-        'title': title,
-        'message': message,
-        'status': status,
-        'orderId': orderId,
-        'timestamp': FieldValue.serverTimestamp(),
-        'read': false,
-      });
+            'title': title,
+            'message': message,
+            'status': status,
+            'orderId': orderId,
+            'timestamp': FieldValue.serverTimestamp(),
+            'read': false,
+          });
     } catch (e) {
       debugPrint('Failed to send notification: $e');
     }
@@ -78,7 +80,8 @@ class OrderProvider with ChangeNotifier {
   // --------------------------------------------------------------------------
   Future<String> getRazorpayKey() async {
     final key = dotenv.env['RAZORPAY_KEY'];
-    if (key == null || key.isEmpty) throw Exception('Razorpay key missing in .env');
+    if (key == null || key.isEmpty)
+      throw Exception('Razorpay key missing in .env');
     return key;
   }
 
@@ -103,7 +106,8 @@ class OrderProvider with ChangeNotifier {
 
     // Validate pickup conditions
     if (receivingMethod == 'pickup') {
-      if (pickupDate == null || pickupDate.isAfter(now.add(const Duration(days: 3)))) {
+      if (pickupDate == null ||
+          pickupDate.isAfter(now.add(const Duration(days: 3)))) {
         _isPlacing = false;
         notifyListeners();
         throw Exception('Pickup date must be within 3 days.');
@@ -118,7 +122,9 @@ class OrderProvider with ChangeNotifier {
     // Compute total
     double total = 0.0;
     try {
-      total = double.parse((cartProvider.finalTotal as double).toStringAsFixed(2));
+      total = double.parse(
+        (cartProvider.finalTotal as double).toStringAsFixed(2),
+      );
     } catch (_) {}
 
     // Group items by seller
@@ -164,7 +170,9 @@ class OrderProvider with ChangeNotifier {
       status: receivingMethod == 'pickup' ? 'preparing' : 'order_placed',
       createdAt: Timestamp.now(),
       placedAt: DateTime.now(),
-      perRetailerDelivery: sellerEtas.map((id, eta) => MapEntry(id, {'eta': eta})),
+      perRetailerDelivery: sellerEtas.map(
+        (id, eta) => MapEntry(id, {'eta': eta}),
+      ),
       pickupDate: pickupDate,
       etaDays: maxEtaDays,
       expectedDelivery: now.add(Duration(days: maxEtaDays)),
@@ -172,7 +180,10 @@ class OrderProvider with ChangeNotifier {
     );
 
     try {
-      await _service.placeOrder(order, perRetailerDelivery: order.perRetailerDelivery);
+      await _service.placeOrder(
+        order,
+        perRetailerDelivery: order.perRetailerDelivery,
+      );
       //Update category stats in user's document
       try {
         await updateUserCategoryStats(userId, items);
@@ -180,22 +191,22 @@ class OrderProvider with ChangeNotifier {
         debugPrint(' Failed to update category stats: $e');
       }
 
-
       // Notify retailers
       for (var item in items) {
         try {
           await FirebaseFirestore.instance
               .collection("users")
               .doc(item.sellerId)
-              .collection("customer_orders").add({
-            "customerId": userId,
-            "orderId": orderId,
-            "type": "new_order",
-            "deliveryMethod": receivingMethod,
-            "timestamp": FieldValue.serverTimestamp(),
-            if (receivingMethod == "pickup" && pickupDate != null)
-              "pickupDate": pickupDate.toIso8601String(),
-          });
+              .collection("customer_orders")
+              .add({
+                "customerId": userId,
+                "orderId": orderId,
+                "type": "new_order",
+                "deliveryMethod": receivingMethod,
+                "timestamp": FieldValue.serverTimestamp(),
+                if (receivingMethod == "pickup" && pickupDate != null)
+                  "pickupDate": pickupDate.toIso8601String(),
+              });
         } catch (e) {
           debugPrint('Failed to notify seller ${item.sellerId}: $e');
         }
@@ -238,7 +249,6 @@ class OrderProvider with ChangeNotifier {
         _simulateOrderProgress(userId, orderId, maxEtaDays);
       }
 
-
       await _sendNotification(
         userId: userId,
         title: 'Order Placed',
@@ -267,12 +277,17 @@ class OrderProvider with ChangeNotifier {
   // --------------------------------------------------------------------------
   void listenToOrder(String userId, String orderId) {
     stopListeningToOrder();
-    _orderSubscription = _service.orderStream(userId, orderId).listen((order) {
-      _activeOrder = order;
-      notifyListeners();
-    }, onError: (e) {
-      debugPrint('Order stream error: $e');
-    });
+    _orderSubscription = _service
+        .orderStream(userId, orderId)
+        .listen(
+          (order) {
+            _activeOrder = order;
+            notifyListeners();
+          },
+          onError: (e) {
+            debugPrint('Order stream error: $e');
+          },
+        );
   }
 
   void stopListeningToOrder() {
@@ -301,8 +316,10 @@ class OrderProvider with ChangeNotifier {
         throw Exception("Pickup order cannot be cancelled now.");
       }
 
-      await _service.restoreStockForCancelledOrder(order, cancelStatus: "pickup_cancelled");
-
+      await _service.restoreStockForCancelledOrder(
+        order,
+        cancelStatus: "pickup_cancelled",
+      );
 
       await FirebaseFirestore.instance
           .collection('users')
@@ -310,16 +327,16 @@ class OrderProvider with ChangeNotifier {
           .collection('orders')
           .doc(orderId)
           .update({
-        "status": "pickup_cancelled",
-        "cancelledAt": FieldValue.serverTimestamp(),
-      });
+            "status": "pickup_cancelled",
+            "cancelledAt": FieldValue.serverTimestamp(),
+          });
 
       await _sendNotification(
         userId: order.userId,
         title: "Pickup Cancelled",
         message: "Your pickup order has been cancelled.",
         status: "pickup_cancelled",
-          orderId: orderId,
+        orderId: orderId,
       );
       await _sendEmailIfNeeded(
         userId: userId,
@@ -348,11 +365,14 @@ class OrderProvider with ChangeNotifier {
     if (!doc.exists) throw Exception('Order not found');
     final order = models.Order.fromDoc(doc);
 
-    if (order.status != 'order_placed' ) {
+    if (order.status != 'order_placed') {
       throw Exception('Order cannot be cancelled now.');
     }
 
-    await _service.restoreStockForCancelledOrder(order, cancelStatus: "cancelled");
+    await _service.restoreStockForCancelledOrder(
+      order,
+      cancelStatus: "cancelled",
+    );
 
     await FirebaseFirestore.instance
         .collection('users')
@@ -360,10 +380,9 @@ class OrderProvider with ChangeNotifier {
         .collection('orders')
         .doc(orderId)
         .update({
-      "status": "cancelled",
-      "cancelledAt": FieldValue.serverTimestamp(),
-    });
-
+          "status": "cancelled",
+          "cancelledAt": FieldValue.serverTimestamp(),
+        });
 
     await _sendNotification(
       userId: userId,
@@ -380,6 +399,7 @@ class OrderProvider with ChangeNotifier {
 
     notifyListeners();
   }
+
   // --------------------------------------------------------------------------
   // Simulated status progression (demo only)
   // --------------------------------------------------------------------------
@@ -456,7 +476,12 @@ class OrderProvider with ChangeNotifier {
       }
     });
   }
-  void _simulatePickupProgress(String userId, String orderId, DateTime pickupDate) {
+
+  void _simulatePickupProgress(
+    String userId,
+    String orderId,
+    DateTime pickupDate,
+  ) {
     _statusTimer?.cancel();
 
     _statusTimer = Timer.periodic(const Duration(hours: 1), (timer) async {
@@ -539,14 +564,19 @@ class OrderProvider with ChangeNotifier {
     stopListeningToOrder();
     super.dispose();
   }
+
   //Sending email
   Future<void> _sendEmailIfNeeded({
     required String userId,
-    required String status,     // order_placed | cancelled | pickup_cancelled | delivered
+    required String
+    status, // order_placed | cancelled | pickup_cancelled | delivered
     required String orderId,
   }) async {
     try {
-      final userDoc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .get();
       final toEmail = (userDoc.data()?['email'] ?? '').toString().trim();
       if (toEmail.isEmpty) return; // no email on file → skip
 
@@ -577,21 +607,18 @@ class OrderProvider with ChangeNotifier {
       await emailjs.send(
         'EMAILJS_SERVICE_ID',
         'EMAILJS_TEMPLATE_ID',
-        {
-          'to_email': toEmail,
-          'subject': subject,
-          'message': body,
-        },
-        const emailjs.Options(
-          publicKey: 'EMAILJS_PUBLIC_KEY',
-        ),
+        {'to_email': toEmail, 'subject': subject, 'message': body},
+        const emailjs.Options(publicKey: 'EMAILJS_PUBLIC_KEY'),
       );
-
     } catch (e) {
       debugPrint('Email send skipped/failed: $e');
     }
   }
-  Future<void> maybeAutoAdvanceOrderStatus(String userId, String orderId) async {
+
+  Future<void> maybeAutoAdvanceOrderStatus(
+    String userId,
+    String orderId,
+  ) async {
     final doc = await FirebaseFirestore.instance
         .collection('users')
         .doc(userId)
@@ -608,16 +635,20 @@ class OrderProvider with ChangeNotifier {
     //Skip cancelled/delivered
     if (order.status == 'delivered' ||
         order.status == 'cancelled' ||
-        order.status == 'pickup_cancelled') return;
+        order.status == 'pickup_cancelled')
+      return;
 
     final elapsed = DateTime.now().difference(order.placedAt);
     final etaDays = order.etaDays ?? 3;
 
     String? newStatus;
 
-    if (elapsed.inDays >= etaDays) newStatus = "delivered";
-    else if (elapsed.inDays >= (etaDays * 0.75).round()) newStatus = "out_for_delivery";
-    else if (elapsed.inDays >= (etaDays * 0.25).round()) newStatus = "shipped";
+    if (elapsed.inDays >= etaDays)
+      newStatus = "delivered";
+    else if (elapsed.inDays >= (etaDays * 0.75).round())
+      newStatus = "out_for_delivery";
+    else if (elapsed.inDays >= (etaDays * 0.25).round())
+      newStatus = "shipped";
 
     if (newStatus != null && newStatus != order.status) {
       await _service.updateOrderStatus(userId, orderId, newStatus);
@@ -691,7 +722,6 @@ class OrderProvider with ChangeNotifier {
         continue; //move to next order safely
       }
 
-
       // Skip orders without ETA (just in case)
       if (order.etaDays == null) continue;
 
@@ -703,9 +733,12 @@ class OrderProvider with ChangeNotifier {
 
       String? newStatus;
 
-      if (elapsed >= deliveredAt) newStatus = 'delivered';
-      else if (elapsed >= outForDeliveryAt) newStatus = 'out_for_delivery';
-      else if (elapsed >= shippedAt) newStatus = 'shipped';
+      if (elapsed >= deliveredAt)
+        newStatus = 'delivered';
+      else if (elapsed >= outForDeliveryAt)
+        newStatus = 'out_for_delivery';
+      else if (elapsed >= shippedAt)
+        newStatus = 'shipped';
 
       if (newStatus != null && newStatus != order.status) {
         await _service.updateOrderStatus(userId, order.id, newStatus);
@@ -726,8 +759,4 @@ class OrderProvider with ChangeNotifier {
       }
     }
   }
-
-
-
 }
-

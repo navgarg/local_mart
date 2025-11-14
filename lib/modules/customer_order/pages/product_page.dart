@@ -1,11 +1,12 @@
 import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:local_mart/modules/customer_order/providers/cart_provider.dart';
 import 'package:local_mart/modules/customer_order/models/order_model.dart';
 import 'package:local_mart/modules/customer_order/pages/alerts_page.dart';
 import 'package:local_mart/modules/customer_order/pages/order_history_page.dart';
+import 'package:local_mart/modules/customer_order/providers/cart_provider.dart';
+import 'package:provider/provider.dart';
 
 class ProductsPage extends StatelessWidget {
   const ProductsPage({super.key});
@@ -72,7 +73,8 @@ class ProductsPage extends StatelessWidget {
               // Image handling
               Widget imageWidget;
               final imageData = data['image'];
-              if (imageData != null && imageData.toString().startsWith('/9j/')) {
+              if (imageData != null &&
+                  imageData.toString().startsWith('/9j/')) {
                 try {
                   imageWidget = Image.memory(
                     base64Decode(imageData),
@@ -83,7 +85,8 @@ class ProductsPage extends StatelessWidget {
                 } catch (_) {
                   imageWidget = const Icon(Icons.broken_image);
                 }
-              } else if (imageData != null && imageData.toString().startsWith('http')) {
+              } else if (imageData != null &&
+                  imageData.toString().startsWith('http')) {
                 imageWidget = Image.network(
                   imageData,
                   width: 60,
@@ -94,7 +97,9 @@ class ProductsPage extends StatelessWidget {
                 imageWidget = const Icon(Icons.image_not_supported);
               }
 
-              final price = (data['price'] is num) ? (data['price'] as num).toDouble() : 0.0;
+              final price = (data['price'] is num)
+                  ? (data['price'] as num).toDouble()
+                  : 0.0;
 
               return Card(
                 margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -135,16 +140,12 @@ class ProductsPage extends StatelessWidget {
                       );
                     },
                   ),
-
                 ),
               );
-
             },
           );
         },
       ),
-
     );
-
   }
 }

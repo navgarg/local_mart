@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
+
 import '../models/order_model.dart' as app_models;
 
 class OrderService {
@@ -10,10 +11,13 @@ class OrderService {
   // PLACE ORDER
   // --------------------------------------------------------------------------
   Future<void> placeOrder(
-      app_models.Order order, {
-        Map<String, dynamic>? perRetailerDelivery,
-      }) async {
-    final userOrdersRef = _db.collection('users').doc(order.userId).collection('orders');
+    app_models.Order order, {
+    Map<String, dynamic>? perRetailerDelivery,
+  }) async {
+    final userOrdersRef = _db
+        .collection('users')
+        .doc(order.userId)
+        .collection('orders');
 
     try {
       await _db.runTransaction((txn) async {
@@ -32,7 +36,7 @@ class OrderService {
 
         for (final item in order.items) {
           final productRef = _db.doc(item.productPath);
-          final productSnap = await txn.get(productRef);   //  READ FIRST
+          final productSnap = await txn.get(productRef); //  READ FIRST
 
           if (!productSnap.exists) {
             throw Exception('Product ${item.productId} not found');
@@ -42,7 +46,7 @@ class OrderService {
           if (currentStock < item.quantity) {
             throw Exception(
               'Insufficient stock for ${item.productId} '
-                  '(requested ${item.quantity}, available $currentStock)',
+              '(requested ${item.quantity}, available $currentStock)',
             );
           }
 
@@ -52,8 +56,11 @@ class OrderService {
         // 3) NOW WRITE STOCK UPDATES
         stockMap.forEach((productRef, currentStock) {
           txn.update(productRef, {
-            'stock': currentStock - order.items.firstWhere(
-                    (i) => _db.doc(i.productPath) == productRef).quantity,
+            'stock':
+                currentStock -
+                order.items
+                    .firstWhere((i) => _db.doc(i.productPath) == productRef)
+                    .quantity,
           });
         });
 
@@ -65,7 +72,6 @@ class OrderService {
       rethrow;
     }
   }
-
 
   // --------------------------------------------------------------------------
   //  FETCH / STREAM USER ORDERS
@@ -92,26 +98,28 @@ class OrderService {
   }
 
   Future<void> updateOrderStatus(
-      String userId,
-      String orderId,
-      String newStatus,
-      ) async {
+    String userId,
+    String orderId,
+    String newStatus,
+  ) async {
     await _db
         .collection('users')
         .doc(userId)
         .collection('orders')
         .doc(orderId)
         .update({
-      'status': newStatus,
-      'lastUpdatedAt': FieldValue.serverTimestamp(),
-    });
+          'status': newStatus,
+          'lastUpdatedAt': FieldValue.serverTimestamp(),
+        });
   }
 
   // --------------------------------------------------------------------------
   // RESTORE STOCK ON CANCELLATION
   // --------------------------------------------------------------------------
-  Future<void> restoreStockForCancelledOrder(app_models.Order order, {required String cancelStatus})
-  async {
+  Future<void> restoreStockForCancelledOrder(
+    app_models.Order order, {
+    required String cancelStatus,
+  }) async {
     final orderRef = _db
         .collection('users')
         .doc(order.userId)
@@ -128,7 +136,9 @@ class OrderService {
         if (currentStatus == 'cancelled') return;
 
         // 2) Read all product stocks first (NO updates yet)
-        final productRefs = order.items.map((i) => _db.doc(i.productPath)).toList();
+        final productRefs = order.items
+            .map((i) => _db.doc(i.productPath))
+            .toList();
         final productSnaps = await Future.wait(productRefs.map(txn.get));
 
         // 3) THEN do writes
@@ -149,7 +159,6 @@ class OrderService {
       rethrow;
     }
   }
-
 
   // --------------------------------------------------------------------------
   // ETA CALCULATION (GROUPED BY RETAILER)
@@ -203,8 +212,7 @@ class OrderService {
 
         final etaDate = DateTime.now().add(Duration(days: days));
         results[sellerId] =
-        '${km.toStringAsFixed(1)} km (~$days days, ETA ${etaDate.day}/${etaDate.month})';
-
+            '${km.toStringAsFixed(1)} km (~$days days, ETA ${etaDate.day}/${etaDate.month})';
       } catch (e) {
         debugPrint('ETA calc failed for retailer $sellerId: $e');
         results[sellerId] = 'Estimate unavailable';
@@ -213,7 +221,4 @@ class OrderService {
 
     return results;
   }
-
 }
-
-
