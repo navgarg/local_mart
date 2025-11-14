@@ -3,6 +3,7 @@ import java.io.FileInputStream
 
 plugins {
     id("com.android.application")
+    id("com.google.gms.google-services")
     id("kotlin-android")
     id("dev.flutter.flutter-gradle-plugin")
     id("com.google.gms.google-services")
@@ -18,12 +19,14 @@ val dotenv = Properties().apply {
 
 android {
     namespace = "com.example.projects"
+    namespace = "com.example.projects"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = "29.0.14033849"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+        isCoreLibraryDesugaringEnabled = true
     }
 
     kotlinOptions {
@@ -31,6 +34,7 @@ android {
     }
 
     defaultConfig {
+        applicationId = "com.example.projects"
         applicationId = "com.example.projects"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
@@ -51,6 +55,7 @@ flutter {
 }
 
 dependencies {
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.3")
     implementation(platform("com.google.firebase:firebase-bom:34.4.0"))
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-auth")
