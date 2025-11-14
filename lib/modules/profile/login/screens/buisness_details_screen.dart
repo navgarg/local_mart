@@ -1,9 +1,8 @@
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 
 import '../theme/theme.dart';
-import '../widgets/custom_dropdown.dart';
 
 class BusinessDetailsScreen extends StatefulWidget {
   const BusinessDetailsScreen({super.key});
@@ -39,7 +38,7 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
     super.didChangeDependencies();
     final args =
         ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ??
-            {};
+        {};
     _role = args['role'];
     _gender = args['gender'];
     _age = args['age'];
@@ -48,7 +47,8 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
 
   bool _validateGST(String gst) {
     final pattern = RegExp(
-        r'^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$');
+      r'^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$',
+    );
     return pattern.hasMatch(gst);
   }
 
@@ -162,8 +162,10 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
                     errorText: _isValidGST ? null : "Invalid GST number",
                     filled: true,
                     fillColor: Colors.white,
-                    contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide.none,
@@ -197,7 +199,9 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 200),
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 18, vertical: 12),
+                              horizontal: 18,
+                              vertical: 12,
+                            ),
                             decoration: BoxDecoration(
                               color: isSelected ? Colors.black : Colors.white,
                               borderRadius: BorderRadius.circular(14),
@@ -214,7 +218,9 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
                               style: t.bodyMedium?.copyWith(
                                 fontSize: 15,
                                 fontWeight: FontWeight.w600,
-                                color: isSelected ? Colors.white : Colors.black87,
+                                color: isSelected
+                                    ? Colors.white
+                                    : Colors.black87,
                               ),
                             ),
                           ),
