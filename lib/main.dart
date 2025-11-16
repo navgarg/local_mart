@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
+import 'package:local_mart/theme.dart';
 
 // Firebase Auth & Firestore (if you need them later)
 import 'package:firebase_auth/firebase_auth.dart';
@@ -58,6 +59,8 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeData = AppTheme.lightTheme;
+
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => CartProvider()),
