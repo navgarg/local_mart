@@ -2,6 +2,16 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+   <key>rzp_test_RZzeu3URxp8Q7P</key>
+   <string>YOUR_KEY_ID</string>
+   <key>LSApplicationQueriesSchemes</key>
+   <array>
+     <string>upi</string>
+     <string>phonepe</string>
+     <string>tez</string>
+     <string>paytm</string>
+   </array>
+
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>

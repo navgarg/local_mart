@@ -12,6 +12,7 @@ class AppTheme {
   static const Color labelColor = Color(0xFF888888);
 
   static ThemeData lightTheme = ThemeData(
+    useMaterial3: false,
     brightness: Brightness.light,
     primaryColor: primaryColor,
     scaffoldBackgroundColor: backgroundColor,

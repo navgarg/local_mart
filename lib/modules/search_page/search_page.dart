@@ -1,20 +1,17 @@
 // lib/modules/search_page/search_page.dart
 import 'dart:async';
-import 'dart:typed_data';
-import 'package:flutter/material.dart';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 
 import '../../models/product.dart';
-import '../products_page/product_details.dart';
 import '../../utils/distance.dart';
 import '../../utils/image_utils.dart' as imgutils;
-
 import '../../widgets/app_scaffold.dart';
-import '../main_screen.dart';
 import '../../widgets/star_rating.dart';
-
-
+import '../main_screen.dart';
+import '../products_page/product_details.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
@@ -41,10 +38,10 @@ class _SearchPageState extends State<SearchPage> {
 
   bool get filtersActive =>
       onlyInStock ||
-          priceMin != null ||
-          priceMax != null ||
-          distanceMaxKm != null ||
-          sortBy != 'relevance';
+      priceMin != null ||
+      priceMax != null ||
+      distanceMaxKm != null ||
+      sortBy != 'relevance';
 
   @override
   void initState() {
@@ -89,8 +86,10 @@ class _SearchPageState extends State<SearchPage> {
   Future<Map<String, dynamic>?> _getCurrentUserAddress() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return null;
-    final doc = await FirebaseFirestore.instance.collection('users').doc(
-        user.uid).get();
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .get();
     if (!doc.exists) return null;
     return doc.data()?['address'] as Map<String, dynamic>?;
   }
@@ -127,21 +126,26 @@ class _SearchPageState extends State<SearchPage> {
         final productName = (data['name'] ?? '').toString().toLowerCase();
         final words = productName.split(' ');
         if (!(productName.contains(lowercaseQuery) ||
-            words.any((word) =>
-            word.contains(lowercaseQuery) || lowercaseQuery.contains(word)))) {
+            words.any(
+              (word) =>
+                  word.contains(lowercaseQuery) ||
+                  lowercaseQuery.contains(word),
+            ))) {
           continue;
         }
 
         // stock filter
         final stockRaw = data['stock'] ?? 0;
-        final stock = (stockRaw is num) ? stockRaw.toInt() : int.tryParse(
-            stockRaw.toString()) ?? 0;
+        final stock = (stockRaw is num)
+            ? stockRaw.toInt()
+            : int.tryParse(stockRaw.toString()) ?? 0;
         if (onlyInStock && stock <= 0) continue;
 
         // price filter
         final priceRaw = data['price'] ?? 0;
-        final priceVal = (priceRaw is num) ? priceRaw.toDouble() : double
-            .tryParse(priceRaw.toString()) ?? 0.0;
+        final priceVal = (priceRaw is num)
+            ? priceRaw.toDouble()
+            : double.tryParse(priceRaw.toString()) ?? 0.0;
         if (priceMin != null && priceVal < priceMin!) continue;
         if (priceMax != null && priceVal > priceMax!) continue;
 
@@ -155,12 +159,17 @@ class _SearchPageState extends State<SearchPage> {
                 .doc(sellerId)
                 .get();
             final sellerAddr = sellerDoc.data()?['address'];
-            if (sellerAddr != null && sellerAddr['lat'] != null &&
+            if (sellerAddr != null &&
+                sellerAddr['lat'] != null &&
                 sellerAddr['lng'] != null) {
               final sLat = (sellerAddr['lat'] as num).toDouble();
               final sLng = (sellerAddr['lng'] as num).toDouble();
               distKm = distanceKm(
-                  lat1: userLat, lng1: userLng, lat2: sLat, lng2: sLng);
+                lat1: userLat,
+                lng1: userLng,
+                lat2: sLat,
+                lng2: sLng,
+              );
             }
           } catch (_) {
             // ignore distance failure
@@ -179,8 +188,9 @@ class _SearchPageState extends State<SearchPage> {
               double total = 0;
               for (var r in rSnap.docs) {
                 final val = r.data()['rating'] ?? r.data()['Rating'] ?? 0;
-                total += (val is num) ? val.toDouble() : double.tryParse(
-                    val.toString()) ?? 0.0;
+                total += (val is num)
+                    ? val.toDouble()
+                    : double.tryParse(val.toString()) ?? 0.0;
               }
               data['avgRating'] = total / rSnap.docs.length;
             } else {
@@ -244,18 +254,22 @@ class _SearchPageState extends State<SearchPage> {
     String tmpSort = sortBy;
 
     final minCtrl = TextEditingController(
-        text: tmpMin?.toStringAsFixed(0) ?? '');
+      text: tmpMin?.toStringAsFixed(0) ?? '',
+    );
     final maxCtrl = TextEditingController(
-        text: tmpMax?.toStringAsFixed(0) ?? '');
+      text: tmpMax?.toStringAsFixed(0) ?? '',
+    );
     final distCtrl = TextEditingController(
-        text: tmpDist?.toStringAsFixed(0) ?? '');
+      text: tmpDist?.toStringAsFixed(0) ?? '',
+    );
 
     await showDialog(
       context: context,
       builder: (ctx) {
         return Dialog(
           shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(18)),
+            borderRadius: BorderRadius.circular(18),
+          ),
           child: Container(
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(18),
@@ -276,14 +290,11 @@ class _SearchPageState extends State<SearchPage> {
                     children: [
                       Text(
                         'Filters',
-                        style: Theme
-                            .of(context)
-                            .textTheme
-                            .titleMedium
+                        style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
                       ),
                       TextButton(
                         onPressed: () {
@@ -302,9 +313,7 @@ class _SearchPageState extends State<SearchPage> {
                         child: Text(
                           'Clear',
                           style: TextStyle(
-                            color: Theme
-                                .of(context)
-                                .primaryColor,
+                            color: Theme.of(context).primaryColor,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -316,56 +325,58 @@ class _SearchPageState extends State<SearchPage> {
                     value: tmpOnlyStock,
                     onChanged: (v) => setState(() => tmpOnlyStock = v),
                     title: const Text('Only show in-stock items'),
-                    activeThumbColor: Theme
-                        .of(context)
-                        .primaryColor,
                   ),
                   const SizedBox(height: 10),
                   TextField(
                     controller: minCtrl,
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
-                        labelText: 'Min price (₹)'),
+                      labelText: 'Min price (₹)',
+                    ),
                     onChanged: (v) =>
-                    tmpMin = v
-                        .trim()
-                        .isEmpty ? null : double.tryParse(v),
+                        tmpMin = v.trim().isEmpty ? null : double.tryParse(v),
                   ),
                   const SizedBox(height: 8),
                   TextField(
                     controller: maxCtrl,
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
-                        labelText: 'Max price (₹)'),
+                      labelText: 'Max price (₹)',
+                    ),
                     onChanged: (v) =>
-                    tmpMax = v
-                        .trim()
-                        .isEmpty ? null : double.tryParse(v),
+                        tmpMax = v.trim().isEmpty ? null : double.tryParse(v),
                   ),
                   const SizedBox(height: 8),
                   TextField(
                     controller: distCtrl,
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
-                        labelText: 'Max distance (km)'),
+                      labelText: 'Max distance (km)',
+                    ),
                     onChanged: (v) =>
-                    tmpDist = v
-                        .trim()
-                        .isEmpty ? null : double.tryParse(v),
+                        tmpDist = v.trim().isEmpty ? null : double.tryParse(v),
                   ),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
-                    initialValue: tmpSort,
+                    value: tmpSort,
                     decoration: const InputDecoration(labelText: 'Sort by'),
                     items: const [
                       DropdownMenuItem(
-                          value: 'relevance', child: Text('Relevance')),
+                        value: 'relevance',
+                        child: Text('Relevance'),
+                      ),
                       DropdownMenuItem(
-                          value: 'price', child: Text('Price (Low → High)')),
-                      DropdownMenuItem(value: 'distance',
-                          child: Text('Distance (Nearest First)')),
-                      DropdownMenuItem(value: 'rating',
-                          child: Text('Rating (Highest First)')),
+                        value: 'price',
+                        child: Text('Price (Low → High)'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'distance',
+                        child: Text('Distance (Nearest First)'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'rating',
+                        child: Text('Rating (Highest First)'),
+                      ),
                     ],
                     onChanged: (val) => tmpSort = val ?? 'relevance',
                   ),
@@ -373,8 +384,10 @@ class _SearchPageState extends State<SearchPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      TextButton(onPressed: () => Navigator.of(ctx).pop(),
-                          child: const Text('Cancel')),
+                      TextButton(
+                        onPressed: () => Navigator.of(ctx).pop(),
+                        child: const Text('Cancel'),
+                      ),
                       const SizedBox(width: 8),
                       ElevatedButton(
                         onPressed: () {
@@ -392,7 +405,7 @@ class _SearchPageState extends State<SearchPage> {
                         child: const Text('Apply'),
                       ),
                     ],
-                  )
+                  ),
                 ],
               ),
             ),
@@ -418,8 +431,9 @@ class _SearchPageState extends State<SearchPage> {
       name: name,
       description: desc,
       image: imgStr,
-      price: (price is num) ? price.toInt() : int.tryParse(price.toString()) ??
-          0,
+      price: (price is num)
+          ? price.toInt()
+          : int.tryParse(price.toString()) ?? 0,
       stock: (p['stock'] ?? 0) is int
           ? (p['stock'] ?? 0)
           : int.tryParse((p['stock'] ?? 0).toString()) ?? 0,
@@ -433,37 +447,54 @@ class _SearchPageState extends State<SearchPage> {
       elevation: 1.2,
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(
-            horizontal: 12, vertical: 10),
+          horizontal: 12,
+          vertical: 10,
+        ),
         leading: ClipRRect(
           borderRadius: BorderRadius.circular(8),
           child: imgBytes != null && imgBytes.isNotEmpty
               ? Image.memory(imgBytes, width: 64, height: 64, fit: BoxFit.cover)
               : Container(
-            width: 64,
-            height: 64,
-            color: Colors.grey.shade200,
-            child: const Icon(Icons.image_not_supported, size: 28),
-          ),
+                  width: 64,
+                  height: 64,
+                  color: Colors.grey.shade200,
+                  child: const Icon(Icons.image_not_supported, size: 28),
+                ),
         ),
-        title: Text(name, maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontWeight: FontWeight.w600)),
+        title: Text(
+          name,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 6),
             Row(
               children: [
-                Text("₹${productModel.price}", style: const TextStyle(
-                    fontSize: 15, fontWeight: FontWeight.w600)),
+                Text(
+                  "₹${productModel.price}",
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 const SizedBox(width: 10),
                 if (rating > 0)
-                  Row(children: [
-                    buildStars(rating, size: 14),
-                    const SizedBox(width: 6),
-                    Text(rating.toStringAsFixed(1), style: const TextStyle(
-                        fontSize: 12, color: Colors.black54)),
-                  ]),
+                  Row(
+                    children: [
+                      buildStars(rating, size: 14),
+                      const SizedBox(width: 6),
+                      Text(
+                        rating.toStringAsFixed(1),
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.black54,
+                        ),
+                      ),
+                    ],
+                  ),
               ],
             ),
             if (distanceKmVal != null)
@@ -471,12 +502,19 @@ class _SearchPageState extends State<SearchPage> {
                 padding: const EdgeInsets.only(top: 6),
                 child: Row(
                   children: [
-                    const Icon(Icons.location_on_outlined, size: 14,
-                        color: Color(0xFF00A693)),
+                    const Icon(
+                      Icons.location_on_outlined,
+                      size: 14,
+                      color: Color(0xFF00A693),
+                    ),
                     const SizedBox(width: 4),
-                    Text("${distanceKmVal.toStringAsFixed(1)} km away",
-                        style: const TextStyle(
-                            fontSize: 12, color: Colors.black54)),
+                    Text(
+                      "${distanceKmVal.toStringAsFixed(1)} km away",
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.black54,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -486,7 +524,8 @@ class _SearchPageState extends State<SearchPage> {
           Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (_) => ProductDetailsPage(product: productModel)),
+              builder: (_) => ProductDetailsPage(product: productModel),
+            ),
           );
         },
       ),
@@ -531,20 +570,17 @@ class _SearchPageState extends State<SearchPage> {
                         icon: Icon(
                           Icons.filter_list,
                           color: filtersActive
-                              ? Theme
-                              .of(context)
-                              .primaryColor
+                              ? Theme.of(context).primaryColor
                               : Colors.black54,
                           shadows: filtersActive
                               ? [
-                            Shadow(
-                              color: Theme
-                                  .of(context)
-                                  .primaryColor
-                                  .withValues(alpha: 0.8),
-                              blurRadius: 8,
-                            ),
-                          ]
+                                  Shadow(
+                                    color: Theme.of(
+                                      context,
+                                    ).primaryColor.withValues(alpha: 0.8),
+                                    blurRadius: 8,
+                                  ),
+                                ]
                               : null,
                         ),
                         onPressed: _openFilterDialog,
@@ -562,55 +598,64 @@ class _SearchPageState extends State<SearchPage> {
             duration: const Duration(milliseconds: 200),
             child: filtersActive
                 ? Padding(
-              key: const ValueKey('filters_chip'),
-              padding:
-              const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: GestureDetector(
-                  onTap: _openFilterDialog,
-                  child: Container(
+                    key: const ValueKey('filters_chip'),
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF00A693), Color(0xFF7FECEC)],
-                        begin: Alignment.centerLeft,
-                        end: Alignment.centerRight,
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: GestureDetector(
+                        onTap: _openFilterDialog,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFF00A693), Color(0xFF7FECEC)],
+                              begin: Alignment.centerLeft,
+                              end: Alignment.centerRight,
+                            ),
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Theme.of(
+                                  context,
+                                ).primaryColor.withValues(alpha: 0.25),
+                                blurRadius: 6,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.filter_alt,
+                                color: Colors.white,
+                                size: 18,
+                              ),
+                              const SizedBox(width: 6),
+                              const Text(
+                                'Filters active',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              const Icon(
+                                Icons.arrow_drop_down,
+                                color: Colors.white,
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Theme
-                              .of(context)
-                              .primaryColor
-                              .withValues(alpha: 0.25),
-                          blurRadius: 6,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.filter_alt,
-                            color: Colors.white, size: 18),
-                        const SizedBox(width: 6),
-                        const Text(
-                          'Filters active',
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600),
-                        ),
-                        const SizedBox(width: 8),
-                        const Icon(Icons.arrow_drop_down,
-                            color: Colors.white),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            )
+                  )
                 : const SizedBox.shrink(key: ValueKey('no_filters')),
           ),
 
@@ -621,11 +666,11 @@ class _SearchPageState extends State<SearchPage> {
                 : searchResults.isEmpty
                 ? const Center(child: Text("No results found"))
                 : ListView.builder(
-              padding: const EdgeInsets.only(bottom: 12, top: 6),
-              itemCount: searchResults.length,
-              itemBuilder: (context, index) =>
-                  _buildResultTile(searchResults[index]),
-            ),
+                    padding: const EdgeInsets.only(bottom: 12, top: 6),
+                    itemCount: searchResults.length,
+                    itemBuilder: (context, index) =>
+                        _buildResultTile(searchResults[index]),
+                  ),
           ),
         ],
       ),
