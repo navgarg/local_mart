@@ -40,7 +40,8 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       await _auth.signInWithEmailAndPassword(email: mail, password: pass);
       showAuthSnack(context, "Login successful!", success: true);
-      Navigator.pushReplacementNamed(context, '/home');
+      Navigator.pushReplacementNamed(context, '/products');
+
     } on FirebaseAuthException catch (e) {
       showAuthSnack(context, e.message ?? "Login failed");
     }
@@ -236,7 +237,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       if (user != null) {
                         showAuthSnack(context, "Logged in with Facebook!",
                             success: true);
-                        Navigator.pushReplacementNamed(context, '/home');
+                        Navigator.pushReplacementNamed(context, '/products');
+
                       }
                     } catch (e) {
                       showAuthSnack(context, "Facebook Sign-In failed: $e");
@@ -261,7 +263,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       if (user != null) {
                         showAuthSnack(context, "Logged in with Google!",
                             success: true);
-                        Navigator.pushReplacementNamed(context, '/home');
+                        Navigator.pushReplacementNamed(context, '/products');
+
                       }
                     } catch (e) {
                       showAuthSnack(context, "Google Sign-In failed: $e");

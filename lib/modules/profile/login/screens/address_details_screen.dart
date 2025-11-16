@@ -5,7 +5,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../theme/theme.dart';
 import '../widgets/custom_dropdown.dart';
 
-
 class AddressDetailsScreen extends StatefulWidget {
   const AddressDetailsScreen({super.key});
 
@@ -46,7 +45,10 @@ class _AddressDetailsScreenState extends State<AddressDetailsScreen> {
     _pincodeCtrl.text = args['pincode'] ?? '';
     _areaCtrl.text = args['area'] ?? '';
     _cityCtrl.text = args['city'] ?? '';
-    _selectedState = args['state'] ?? '';
+
+    // ❌ OLD (WRONG): _selectedState = args['state'] ?? '';
+    // ✔ NEW (CORRECT):
+    _selectedState = args['state'];
 
     _lat = args['lat'];
     _lng = args['lng'];
@@ -89,7 +91,7 @@ class _AddressDetailsScreenState extends State<AddressDetailsScreen> {
     );
 
     if (_role == 'Customer') {
-      Navigator.pushReplacementNamed(context, '/home');
+      Navigator.pushReplacementNamed(context, '/products');
     } else {
       Navigator.pushReplacementNamed(context, '/business-details', arguments: {
         'role': _role,
@@ -122,7 +124,6 @@ class _AddressDetailsScreenState extends State<AddressDetailsScreen> {
                 children: [
                   const SizedBox(height: 10),
 
-                  // Title
                   Text(
                     "Add Delivery Address",
                     style: t.titleLarge?.copyWith(
@@ -159,14 +160,19 @@ class _AddressDetailsScreenState extends State<AddressDetailsScreen> {
                     child: CustomDropdown(
                       label: "State",
                       items: _states,
-                      selectedValue: _selectedState,
+
+                      // ✔ FIXED selectedValue (No crash now)
+                      selectedValue: (_selectedState != null &&
+                          _states.contains(_selectedState))
+                          ? _selectedState
+                          : null,
+
                       onChanged: (val) => setState(() => _selectedState = val),
                     ),
                   ),
 
                   const SizedBox(height: 40),
 
-                  // NEW Themed CustomButton
                   CustomButton(
                     text: "Save & Continue",
                     onPressed: _saveAddress,

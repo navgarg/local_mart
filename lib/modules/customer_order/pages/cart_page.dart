@@ -286,12 +286,13 @@ class _CartPageState extends State<CartPage> {
                                     ),
                                   );
                                 },
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 18),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
+                          style: Theme.of(context).elevatedButtonTheme.style,
+                          // style: ElevatedButton.styleFrom(
+                          //   padding: const EdgeInsets.symmetric(horizontal: 18),
+                          //   shape: RoundedRectangleBorder(
+                          //     borderRadius: BorderRadius.circular(8),
+                          //   ),
+                          // ),
                           child: const Text('Proceed to Checkout'),
                         ),
                       ),

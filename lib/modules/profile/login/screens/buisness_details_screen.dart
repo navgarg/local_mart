@@ -97,7 +97,7 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
       ),
     );
 
-    Navigator.pushReplacementNamed(context, '/home');
+    Navigator.pushReplacementNamed(context, '/products');
   }
 
   void _toggleType(String type) {
