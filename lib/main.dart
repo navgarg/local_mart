@@ -13,21 +13,21 @@ import 'package:local_mart/modules/customer_order/pages/pickup_tracking_page.dar
 import 'package:local_mart/modules/customer_order/pages/product_page.dart';
 import 'package:local_mart/modules/customer_order/providers/cart_provider.dart';
 import 'package:local_mart/modules/customer_order/providers/order_provider.dart';
-import 'package:local_mart/modules/profile/login/screens/address_details_screen.dart';
-import 'package:local_mart/modules/profile/login/screens/age_question_screen.dart';
-import 'package:local_mart/modules/profile/login/screens/buisness_details_screen.dart';
-import 'package:local_mart/modules/profile/login/screens/forgot_password_screen.dart';
-import 'package:local_mart/modules/profile/login/screens/gender_question_screen.dart';
+import 'package:local_mart/modules/login/screens/address_details_screen.dart';
+import 'package:local_mart/modules/login/screens/age_question_screen.dart';
+import 'package:local_mart/modules/login/screens/buisness_details_screen.dart';
+import 'package:local_mart/modules/login/screens/forgot_password_screen.dart';
+import 'package:local_mart/modules/login/screens/gender_question_screen.dart';
 // ---------- LOGIN / SIGNUP MODULE (Your Code) ----------
-import 'package:local_mart/modules/profile/login/screens/login_screen.dart';
-import 'package:local_mart/modules/profile/login/screens/map_location_picker_screen.dart';
-import 'package:local_mart/modules/profile/login/screens/mobile_details_screen.dart';
-import 'package:local_mart/modules/profile/login/screens/otp_verification_screen.dart';
-import 'package:local_mart/modules/profile/login/screens/password_updated_screen.dart';
-import 'package:local_mart/modules/profile/login/screens/reset_password_screen.dart';
-import 'package:local_mart/modules/profile/login/screens/role_selection.dart';
-import 'package:local_mart/modules/profile/login/screens/signup_screen.dart';
-import 'package:local_mart/modules/profile/login/screens/verify_reset_otp_screen.dart';
+import 'package:local_mart/modules/login/screens/login_screen.dart';
+import 'package:local_mart/modules/login/screens/map_location_picker_screen.dart';
+import 'package:local_mart/modules/login/screens/mobile_details_screen.dart';
+import 'package:local_mart/modules/login/screens/otp_verification_screen.dart';
+import 'package:local_mart/modules/login/screens/password_updated_screen.dart';
+import 'package:local_mart/modules/login/screens/reset_password_screen.dart';
+import 'package:local_mart/modules/login/screens/role_selection.dart';
+import 'package:local_mart/modules/login/screens/signup_screen.dart';
+import 'package:local_mart/modules/login/screens/verify_reset_otp_screen.dart';
 import 'package:local_mart/theme.dart';
 import 'package:provider/provider.dart';
 
