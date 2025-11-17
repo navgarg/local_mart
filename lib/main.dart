@@ -10,7 +10,6 @@ import 'package:local_mart/modules/customer_order/pages/checkout_page.dart';
 import 'package:local_mart/modules/customer_order/pages/delivery_tracking_page.dart';
 import 'package:local_mart/modules/customer_order/pages/pickup_tracking_page.dart';
 // ---------- CUSTOMER ORDER MODULE (Friend's Code) ----------
-import 'package:local_mart/modules/customer_order/pages/product_page.dart';
 import 'package:local_mart/modules/customer_order/providers/cart_provider.dart';
 import 'package:local_mart/modules/customer_order/providers/order_provider.dart';
 import 'package:local_mart/modules/login/screens/address_details_screen.dart';
@@ -49,76 +48,76 @@ Future<void> main() async {
 }
 
 /// Temporary auto-login (keep only for dev; remove for production)
-Future<void> initTestUser() async {
-  final auth = FirebaseAuth.instance;
-  const testEmail = 'testuser@gmail.com';
-  const testPassword = '123456';
+// Future<void> initTestUser() async {
+//   final auth = FirebaseAuth.instance;
+//   const testEmail = 'testuser@gmail.com';
+//   const testPassword = '123456';
 
-  try {
-    // Try sign in
-    await auth.signInWithEmailAndPassword(
-      email: testEmail,
-      password: testPassword,
-    );
-  } catch (e) {
-    // If sign-in fails, create the user
-    try {
-      final cred = await auth.createUserWithEmailAndPassword(
-        email: testEmail,
-        password: testPassword,
-      );
-      final userDoc = FirebaseFirestore.instance
-          .collection('users')
-          .doc(cred.user!.uid);
-      await userDoc.set({
-        "username": "Test User",
-        "mobile": "9999999999",
-        "address": {
-          "flatNo": "101/A",
-          "building": "Test Building",
-          "area": "Test Colony",
-          "city": "Mumbai",
-          "state": "MH",
-          "pincode": "400001",
-          "lat": 19.0760,
-          "lng": 72.8777,
-        },
-        "role": "Customer",
-        "timestamp": FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
-    } catch (e2) {
-      // ignore for now; log if you want
-      // print('Temp user creation failed: $e2');
-    }
-  }
+//   try {
+//     // Try sign in
+//     await auth.signInWithEmailAndPassword(
+//       email: testEmail,
+//       password: testPassword,
+//     );
+//   } catch (e) {
+//     // If sign-in fails, create the user
+//     try {
+//       final cred = await auth.createUserWithEmailAndPassword(
+//         email: testEmail,
+//         password: testPassword,
+//       );
+//       final userDoc = FirebaseFirestore.instance
+//           .collection('users')
+//           .doc(cred.user!.uid);
+//       await userDoc.set({
+//         "username": "Test User",
+//         "mobile": "9999999999",
+//         "address": {
+//           "flatNo": "101/A",
+//           "building": "Test Building",
+//           "area": "Test Colony",
+//           "city": "Mumbai",
+//           "state": "MH",
+//           "pincode": "400001",
+//           "lat": 19.0760,
+//           "lng": 72.8777,
+//         },
+//         "role": "Customer",
+//         "timestamp": FieldValue.serverTimestamp(),
+//       }, SetOptions(merge: true));
+//     } catch (e2) {
+//       // ignore for now; log if you want
+//       // print('Temp user creation failed: $e2');
+//     }
+//   }
 
-  // Ensure Firestore document exists in case sign-in succeeded but doc missing
-  final current = auth.currentUser;
-  if (current != null) {
-    final docRef = FirebaseFirestore.instance
-        .collection('users')
-        .doc(current.uid);
-    final doc = await docRef.get();
-    if (!doc.exists) {
-      await docRef.set({
-        "username": "Test User",
-        "mobile": "9999999999",
-        "address": {
-          "flatNo": "101/A",
-          "building": "Test Building",
-          "area": "Test Colony",
-          "city": "Mumbai",
-          "state": "MH",
-          "pincode": "400001",
-          "lat": 19.0760,
-          "lng": 72.8777,
-        },
-        "role": "Customer",
-        "timestamp": FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
-    }
-  }
-}
+//   // Ensure Firestore document exists in case sign-in succeeded but doc missing
+//   final current = auth.currentUser;
+//   if (current != null) {
+//     final docRef = FirebaseFirestore.instance
+//         .collection('users')
+//         .doc(current.uid);
+//     final doc = await docRef.get();
+//     if (!doc.exists) {
+//       await docRef.set({
+//         "username": "Test User",
+//         "mobile": "9999999999",
+//         "address": {
+//           "flatNo": "101/A",
+//           "building": "Test Building",
+//           "area": "Test Colony",
+//           "city": "Mumbai",
+//           "state": "MH",
+//           "pincode": "400001",
+//           "lat": 19.0760,
+//           "lng": 72.8777,
+//         },
+//         "role": "Customer",
+//         "timestamp": FieldValue.serverTimestamp(),
+//       }, SetOptions(merge: true));
+//     }
+//   }
+// }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -160,7 +159,7 @@ class MyApp extends StatelessWidget {
           '/business-details': (context) => const BusinessDetailsScreen(),
 
           // ---------- CUSTOMER ORDER ROUTES ----------
-          '/products': (_) => const ProductsPage(),
+          // '/products': (_) => const ProductsPage(),
           '/cart': (_) => const CartPage(),
           '/checkout': (_) => const CheckoutPage(),
 

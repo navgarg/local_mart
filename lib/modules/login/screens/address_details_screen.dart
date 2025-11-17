@@ -27,12 +27,34 @@ class _AddressDetailsScreenState extends State<AddressDetailsScreen> {
   double? _lat, _lng;
 
   final _states = const [
-    'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh',
-    'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka',
-    'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya',
-    'Mizoram', 'Nagaland', 'Odisha', 'Punjab', 'Rajasthan', 'Sikkim',
-    'Tamil Nadu', 'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand',
-    'West Bengal'
+    'Andhra Pradesh',
+    'Arunachal Pradesh',
+    'Assam',
+    'Bihar',
+    'Chhattisgarh',
+    'Goa',
+    'Gujarat',
+    'Haryana',
+    'Himachal Pradesh',
+    'Jharkhand',
+    'Karnataka',
+    'Kerala',
+    'Madhya Pradesh',
+    'Maharashtra',
+    'Manipur',
+    'Meghalaya',
+    'Mizoram',
+    'Nagaland',
+    'Odisha',
+    'Punjab',
+    'Rajasthan',
+    'Sikkim',
+    'Tamil Nadu',
+    'Telangana',
+    'Tripura',
+    'Uttar Pradesh',
+    'Uttarakhand',
+    'West Bengal',
   ];
 
   @override
@@ -40,7 +62,7 @@ class _AddressDetailsScreenState extends State<AddressDetailsScreen> {
     super.didChangeDependencies();
     final args =
         ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>? ??
-            {};
+        {};
 
     _pincodeCtrl.text = args['pincode'] ?? '';
     _areaCtrl.text = args['area'] ?? '';
@@ -53,7 +75,7 @@ class _AddressDetailsScreenState extends State<AddressDetailsScreen> {
     _lat = args['lat'];
     _lng = args['lng'];
     _role = args['role'];
-    _gender = args['gender'];
+    _gender = args['grender'];
     _age = args['age'];
   }
 
@@ -93,12 +115,16 @@ class _AddressDetailsScreenState extends State<AddressDetailsScreen> {
     if (_role == 'Customer') {
       Navigator.pushReplacementNamed(context, '/products');
     } else {
-      Navigator.pushReplacementNamed(context, '/business-details', arguments: {
-        'role': _role,
-        'gender': _gender,
-        'age': _age,
-        'address': address,
-      });
+      Navigator.pushReplacementNamed(
+        context,
+        '/business-details',
+        arguments: {
+          'role': _role,
+          'gender': _gender,
+          'age': _age,
+          'address': address,
+        },
+      );
     }
   }
 
@@ -162,8 +188,9 @@ class _AddressDetailsScreenState extends State<AddressDetailsScreen> {
                       items: _states,
 
                       // ✔ FIXED selectedValue (No crash now)
-                      selectedValue: (_selectedState != null &&
-                          _states.contains(_selectedState))
+                      selectedValue:
+                          (_selectedState != null &&
+                              _states.contains(_selectedState))
                           ? _selectedState
                           : null,
 
@@ -186,8 +213,11 @@ class _AddressDetailsScreenState extends State<AddressDetailsScreen> {
     );
   }
 
-  Widget _buildField(String hint, TextEditingController controller,
-      {bool required = true}) {
+  Widget _buildField(
+    String hint,
+    TextEditingController controller, {
+    bool required = true,
+  }) {
     final t = Theme.of(context).textTheme;
 
     return Padding(
@@ -196,7 +226,7 @@ class _AddressDetailsScreenState extends State<AddressDetailsScreen> {
         controller: controller,
         validator: required
             ? (val) =>
-        val == null || val.trim().isEmpty ? 'Required field' : null
+                  val == null || val.trim().isEmpty ? 'Required field' : null
             : null,
         decoration: InputDecoration(
           hintText: hint,
@@ -206,8 +236,10 @@ class _AddressDetailsScreenState extends State<AddressDetailsScreen> {
           ),
           filled: true,
           fillColor: Colors.white,
-          contentPadding:
-          const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 14,
+          ),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide.none,

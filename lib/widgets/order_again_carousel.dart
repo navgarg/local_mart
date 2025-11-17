@@ -18,11 +18,13 @@ class _OrderAgainCarouselState extends State<OrderAgainCarousel> {
 
   @override
   void initState() {
+    print("init state called for order again carousel");
     super.initState();
     _fetchOrderedProducts();
   }
 
   Future<void> _fetchOrderedProducts() async {
+    print("fetch ordered products called");
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) return;
@@ -51,8 +53,7 @@ class _OrderAgainCarouselState extends State<OrderAgainCarousel> {
           // Try fetching the actual product document to get updated fields
           Product? liveProduct;
           for (final c in cats) {
-            final pDoc =
-            await catRoot.collection(c.toString()).doc(pid).get();
+            final pDoc = await catRoot.collection(c.toString()).doc(pid).get();
             if (pDoc.exists) {
               liveProduct = Product.fromFirestore(pDoc.data()!, pDoc.id);
               break;
@@ -60,7 +61,8 @@ class _OrderAgainCarouselState extends State<OrderAgainCarousel> {
           }
 
           // If live data not found, fallback to order item data
-          map[pid] = liveProduct ??
+          map[pid] =
+              liveProduct ??
               Product(
                 id: pid,
                 name: item['name'] ?? '',
@@ -77,11 +79,13 @@ class _OrderAgainCarouselState extends State<OrderAgainCarousel> {
 
       if (mounted) {
         setState(() {
+          print("setting state for order again carousel");
           uniqueOrderedProducts = map.values.toList();
           loading = false;
         });
       }
     } catch (e) {
+      print("Error in _fetchOrderedProducts: $e");
       debugPrint("⚠️ Error fetching Buy Again: $e");
       if (mounted) setState(() => loading = false);
     }
@@ -89,7 +93,9 @@ class _OrderAgainCarouselState extends State<OrderAgainCarousel> {
 
   @override
   Widget build(BuildContext context) {
+    print("build called for order again carousel");
     if (loading) {
+      print("loading is true for order again carousel");
       return const Center(
         child: Padding(
           padding: EdgeInsets.all(20),
@@ -98,6 +104,7 @@ class _OrderAgainCarouselState extends State<OrderAgainCarousel> {
       );
     }
 
+    print("uniqueOrderedProducts length: ${uniqueOrderedProducts.length}");
     if (uniqueOrderedProducts.isEmpty) return const SizedBox.shrink();
 
     return Column(
@@ -116,9 +123,7 @@ class _OrderAgainCarouselState extends State<OrderAgainCarousel> {
               GestureDetector(
                 onTap: () {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text("Orders page coming soon..."),
-                    ),
+                    const SnackBar(content: Text("Orders page coming soon...")),
                   );
                 },
                 child: Text(
@@ -162,7 +167,7 @@ class _OrderAgainCarouselState extends State<OrderAgainCarousel> {
               } catch (_) {
                 imgWidget = const Icon(Icons.image_not_supported, size: 60);
               }
-
+              print("building item for product id: ${product.id}");
               return Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8.0),
                 child: GestureDetector(
@@ -170,10 +175,8 @@ class _OrderAgainCarouselState extends State<OrderAgainCarousel> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => ProductDetailsPage(
-                          product: product,
-                          fromIndex: 0,
-                        ),
+                        builder: (_) =>
+                            ProductDetailsPage(product: product, fromIndex: 0),
                       ),
                     );
                   },
@@ -222,4 +225,3 @@ class _OrderAgainCarouselState extends State<OrderAgainCarousel> {
     );
   }
 }
-
