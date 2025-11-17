@@ -28,7 +28,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final password = TextEditingController();
 
   // EMAIL LOGIN
-    Future<void> _loginWithEmail() async {
+  Future<void> _loginWithEmail() async {
     final mail = email.text.trim();
     final pass = password.text.trim();
 
@@ -40,14 +40,14 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       await _auth.signInWithEmailAndPassword(email: mail, password: pass);
       showAuthSnack(context, "Login successful!", success: true);
-      Navigator.pushReplacementNamed(context, '/products');
-
+      Navigator.pushReplacementNamed(context, '/home');
     } on FirebaseAuthException catch (e) {
       showAuthSnack(context, e.message ?? "Login failed");
     }
   }
+
   // PHONE OTP LOGIN
-   Future<void> _sendOTP() async {
+  Future<void> _sendOTP() async {
     final num = phone.text.trim();
     if (num.isEmpty || num.length != 10) {
       showAuthSnack(context, "Please enter a valid 10-digit number");
@@ -76,7 +76,8 @@ class _LoginScreenState extends State<LoginScreen> {
       },
     );
   }
-   // TIMER
+
+  // TIMER
   void _startTimer() {
     if (isCounting) return;
 
@@ -97,8 +98,9 @@ class _LoginScreenState extends State<LoginScreen> {
       return true;
     });
   }
-    // UI
-   @override
+
+  // UI
+  @override
   Widget build(BuildContext context) {
     final t = Theme.of(context).textTheme;
 
@@ -109,10 +111,7 @@ class _LoginScreenState extends State<LoginScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF5FE0E5),
-              Color(0xFFFFFFFF),
-            ],
+            colors: [Color(0xFF5FE0E5), Color(0xFFFFFFFF)],
           ),
         ),
         child: SafeArea(
@@ -126,8 +125,11 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 20),
 
                 // App Icon & Title
-                Icon(Icons.shopping_bag_rounded,
-                    size: 64, color: Colors.black.withOpacity(0.85)),
+                Icon(
+                  Icons.shopping_bag_rounded,
+                  size: 64,
+                  color: Colors.black.withOpacity(0.85),
+                ),
 
                 Text(
                   "LocalMart",
@@ -174,8 +176,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       Align(
                         alignment: Alignment.centerRight,
                         child: GestureDetector(
-                          onTap: () =>
-                              Navigator.pushNamed(context, '/forgot'),
+                          onTap: () => Navigator.pushNamed(context, '/forgot'),
                           child: Text(
                             "Forgot Password?",
                             style: t.bodyMedium?.copyWith(
@@ -194,19 +195,19 @@ class _LoginScreenState extends State<LoginScreen> {
                 _isSendingOTP
                     ? const CircularProgressIndicator(color: Colors.black)
                     : CustomButton(
-                  text: isPhoneSelected ? "Get OTP" : "Log In",
-                  color: isPhoneSelected
-                      ? const Color(0xFFF4A825)
-                      : Colors.black,
-                  onPressed: () {
-                    if (isPhoneSelected) {
-                      _sendOTP();
-                      _startTimer();
-                    } else {
-                      _loginWithEmail();
-                    }
-                  },
-                ),
+                        text: isPhoneSelected ? "Get OTP" : "Log In",
+                        color: isPhoneSelected
+                            ? const Color(0xFFF4A825)
+                            : Colors.black,
+                        onPressed: () {
+                          if (isPhoneSelected) {
+                            _sendOTP();
+                            _startTimer();
+                          } else {
+                            _loginWithEmail();
+                          }
+                        },
+                      ),
 
                 if (isPhoneSelected && isCounting)
                   Padding(
@@ -228,17 +229,19 @@ class _LoginScreenState extends State<LoginScreen> {
                   text: "Continue with Facebook",
                   bgColor: const Color(0xFF1877F2),
                   iconPath:
-                  "https://cdn-icons-png.flaticon.com/512/733/733547.png",
+                      "https://cdn-icons-png.flaticon.com/512/733/733547.png",
                   textColor: Colors.white,
                   onTap: () async {
                     try {
-                      final user =
-                      await _authService.signInWithFacebookAndUpsert();
+                      final user = await _authService
+                          .signInWithFacebookAndUpsert();
                       if (user != null) {
-                        showAuthSnack(context, "Logged in with Facebook!",
-                            success: true);
-                        Navigator.pushReplacementNamed(context, '/products');
-
+                        showAuthSnack(
+                          context,
+                          "Logged in with Facebook!",
+                          success: true,
+                        );
+                        Navigator.pushReplacementNamed(context, '/home');
                       }
                     } catch (e) {
                       showAuthSnack(context, "Facebook Sign-In failed: $e");
@@ -253,18 +256,20 @@ class _LoginScreenState extends State<LoginScreen> {
                   text: "Continue with Google",
                   bgColor: Colors.white,
                   iconPath:
-                  "https://cdn-icons-png.flaticon.com/512/2991/2991148.png",
+                      "https://cdn-icons-png.flaticon.com/512/2991/2991148.png",
                   textColor: Colors.black87,
                   border: true,
                   onTap: () async {
                     try {
-                      final user =
-                      await _authService.signInWithGoogleAndUpsert();
+                      final user = await _authService
+                          .signInWithGoogleAndUpsert();
                       if (user != null) {
-                        showAuthSnack(context, "Logged in with Google!",
-                            success: true);
-                        Navigator.pushReplacementNamed(context, '/products');
-
+                        showAuthSnack(
+                          context,
+                          "Logged in with Google!",
+                          success: true,
+                        );
+                        Navigator.pushReplacementNamed(context, '/home');
                       }
                     } catch (e) {
                       showAuthSnack(context, "Google Sign-In failed: $e");
@@ -282,6 +287,7 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     );
   }
+
   // -----------------------------------------------------------------
   // Helper Widgets
   // -----------------------------------------------------------------
@@ -324,26 +330,22 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     );
   }
+
   Widget _divider(String label) {
     final t = Theme.of(context).textTheme;
     return Row(
       children: [
         Expanded(
-          child: Divider(
-            color: Colors.black.withOpacity(0.3),
-            endIndent: 8,
-          ),
+          child: Divider(color: Colors.black.withOpacity(0.3), endIndent: 8),
         ),
         Text(label, style: t.bodyMedium?.copyWith(fontSize: 14)),
         Expanded(
-          child: Divider(
-            color: Colors.black.withOpacity(0.3),
-            indent: 8,
-          ),
+          child: Divider(color: Colors.black.withOpacity(0.3), indent: 8),
         ),
       ],
     );
   }
+
   Widget _signupRedirect() {
     final t = Theme.of(context).textTheme;
     return Row(
