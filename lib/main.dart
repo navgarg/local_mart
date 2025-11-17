@@ -48,76 +48,76 @@ Future<void> main() async {
 }
 
 /// Temporary auto-login (keep only for dev; remove for production)
-// Future<void> initTestUser() async {
-//   final auth = FirebaseAuth.instance;
-//   const testEmail = 'testuser@gmail.com';
-//   const testPassword = '123456';
+Future<void> initTestUser() async {
+  final auth = FirebaseAuth.instance;
+  const testEmail = 'testuser@gmail.com';
+  const testPassword = '123456';
 
-//   try {
-//     // Try sign in
-//     await auth.signInWithEmailAndPassword(
-//       email: testEmail,
-//       password: testPassword,
-//     );
-//   } catch (e) {
-//     // If sign-in fails, create the user
-//     try {
-//       final cred = await auth.createUserWithEmailAndPassword(
-//         email: testEmail,
-//         password: testPassword,
-//       );
-//       final userDoc = FirebaseFirestore.instance
-//           .collection('users')
-//           .doc(cred.user!.uid);
-//       await userDoc.set({
-//         "username": "Test User",
-//         "mobile": "9999999999",
-//         "address": {
-//           "flatNo": "101/A",
-//           "building": "Test Building",
-//           "area": "Test Colony",
-//           "city": "Mumbai",
-//           "state": "MH",
-//           "pincode": "400001",
-//           "lat": 19.0760,
-//           "lng": 72.8777,
-//         },
-//         "role": "Customer",
-//         "timestamp": FieldValue.serverTimestamp(),
-//       }, SetOptions(merge: true));
-//     } catch (e2) {
-//       // ignore for now; log if you want
-//       // print('Temp user creation failed: $e2');
-//     }
-//   }
+  try {
+    // Try sign in
+    await auth.signInWithEmailAndPassword(
+      email: testEmail,
+      password: testPassword,
+    );
+  } catch (e) {
+    // If sign-in fails, create the user
+    try {
+      final cred = await auth.createUserWithEmailAndPassword(
+        email: testEmail,
+        password: testPassword,
+      );
+      final userDoc = FirebaseFirestore.instance
+          .collection('users')
+          .doc(cred.user!.uid);
+      await userDoc.set({
+        "username": "Test User",
+        "mobile": "9999999999",
+        "address": {
+          "flatNo": "101/A",
+          "building": "Test Building",
+          "area": "Test Colony",
+          "city": "Mumbai",
+          "state": "MH",
+          "pincode": "400001",
+          "lat": 19.0760,
+          "lng": 72.8777,
+        },
+        "role": "Customer",
+        "timestamp": FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } catch (e2) {
+      // ignore for now; log if you want
+      // print('Temp user creation failed: $e2');
+    }
+  }
 
-//   // Ensure Firestore document exists in case sign-in succeeded but doc missing
-//   final current = auth.currentUser;
-//   if (current != null) {
-//     final docRef = FirebaseFirestore.instance
-//         .collection('users')
-//         .doc(current.uid);
-//     final doc = await docRef.get();
-//     if (!doc.exists) {
-//       await docRef.set({
-//         "username": "Test User",
-//         "mobile": "9999999999",
-//         "address": {
-//           "flatNo": "101/A",
-//           "building": "Test Building",
-//           "area": "Test Colony",
-//           "city": "Mumbai",
-//           "state": "MH",
-//           "pincode": "400001",
-//           "lat": 19.0760,
-//           "lng": 72.8777,
-//         },
-//         "role": "Customer",
-//         "timestamp": FieldValue.serverTimestamp(),
-//       }, SetOptions(merge: true));
-//     }
-//   }
-// }
+  // Ensure Firestore document exists in case sign-in succeeded but doc missing
+  final current = auth.currentUser;
+  if (current != null) {
+    final docRef = FirebaseFirestore.instance
+        .collection('users')
+        .doc(current.uid);
+    final doc = await docRef.get();
+    if (!doc.exists) {
+      await docRef.set({
+        "username": "Test User",
+        "mobile": "9999999999",
+        "address": {
+          "flatNo": "101/A",
+          "building": "Test Building",
+          "area": "Test Colony",
+          "city": "Mumbai",
+          "state": "MH",
+          "pincode": "400001",
+          "lat": 19.0760,
+          "lng": 72.8777,
+        },
+        "role": "Customer",
+        "timestamp": FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    }
+  }
+}
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});

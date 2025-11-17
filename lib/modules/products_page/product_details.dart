@@ -1,10 +1,13 @@
 // lib/modules/products_page/product_details.dart
-import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../models/product.dart';
+import 'package:provider/provider.dart';
+import '../customer_order/models/order_model.dart';
+import '../customer_order/providers/cart_provider.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../utils/image_utils.dart' as imgutils;
 import '../../utils/distance.dart';
@@ -14,13 +17,18 @@ import '../../widgets/star_rating.dart';
 class ProductDetailsPage extends StatefulWidget {
   final Product product;
   final int fromIndex;
-  const ProductDetailsPage({super.key, required this.product, this.fromIndex = 0});
+  const ProductDetailsPage({
+    super.key,
+    required this.product,
+    this.fromIndex = 0,
+  });
 
   @override
   State<ProductDetailsPage> createState() => _ProductDetailsPageState();
 }
 
-class _ProductDetailsPageState extends State<ProductDetailsPage> with TickerProviderStateMixin {
+class _ProductDetailsPageState extends State<ProductDetailsPage>
+    with TickerProviderStateMixin {
   String sellerName = '';
   double? distanceKmVal;
   String deliverByString = '';
@@ -53,11 +61,14 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> with TickerProv
   ///  Fetch accurate average rating directly from Firestore
   Future<double> _fetchAverageRating() async {
     try {
-      final catDoc = FirebaseFirestore.instance.collection('products').doc('Categories');
+      final catDoc = FirebaseFirestore.instance
+          .collection('products')
+          .doc('Categories');
       final categoriesDoc = await catDoc.get();
       if (!categoriesDoc.exists) return widget.product.avgRating;
 
-      final cats = categoriesDoc.data()?['categoriesList'] as List<dynamic>? ?? [];
+      final cats =
+          categoriesDoc.data()?['categoriesList'] as List<dynamic>? ?? [];
 
       for (final c in cats) {
         final ratingCollection = catDoc
@@ -70,7 +81,9 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> with TickerProv
           double total = 0;
           for (var r in snap.docs) {
             final v = r.data()['rating'] ?? r.data()['Rating'] ?? 0;
-            total += (v is num ? v.toDouble() : double.tryParse(v.toString()) ?? 0.0);
+            total += (v is num
+                ? v.toDouble()
+                : double.tryParse(v.toString()) ?? 0.0);
           }
           return total / snap.docs.length;
         }
@@ -86,7 +99,10 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> with TickerProv
     try {
       final id = widget.product.sellerId;
       if (id.isEmpty) return;
-      final doc = await FirebaseFirestore.instance.collection('users').doc(id).get();
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(id)
+          .get();
       if (doc.exists) {
         final data = doc.data();
         if (mounted) {
@@ -100,10 +116,13 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> with TickerProv
 
   Future<void> _findProductDoc() async {
     try {
-      final catDoc = FirebaseFirestore.instance.collection('products').doc('Categories');
+      final catDoc = FirebaseFirestore.instance
+          .collection('products')
+          .doc('Categories');
       final categoriesDoc = await catDoc.get();
       if (!categoriesDoc.exists) return;
-      final cats = categoriesDoc.data()?['categoriesList'] as List<dynamic>? ?? [];
+      final cats =
+          categoriesDoc.data()?['categoriesList'] as List<dynamic>? ?? [];
       for (final c in cats) {
         final col = catDoc.collection(c.toString());
         final pd = await col.doc(widget.product.id).get();
@@ -119,9 +138,15 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> with TickerProv
     try {
       final current = FirebaseAuth.instance.currentUser;
       if (current == null) return;
-      final userDoc = await FirebaseFirestore.instance.collection('users').doc(current.uid).get();
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(current.uid)
+          .get();
       final userAddr = userDoc.data()?['address'];
-      final sellerDoc = await FirebaseFirestore.instance.collection('users').doc(widget.product.sellerId).get();
+      final sellerDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(widget.product.sellerId)
+          .get();
       final sellerAddr = sellerDoc.data()?['address'];
       if (userAddr != null && sellerAddr != null) {
         final uLat = (userAddr['lat'] ?? 0).toDouble();
@@ -142,15 +167,34 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> with TickerProv
   String _deliverByStringFromDistance(double km) {
     final now = DateTime.now();
     int addDays;
-    if (km <= 5) addDays = 1;
-    else if (km <= 200) addDays = 2;
-    else if (km <= 800) addDays = 3;
-    else if (km <= 1000) addDays = 4;
-    else if (km <= 2000) addDays = 5;
-    else addDays = 7;
+    if (km <= 5)
+      addDays = 1;
+    else if (km <= 200)
+      addDays = 2;
+    else if (km <= 800)
+      addDays = 3;
+    else if (km <= 1000)
+      addDays = 4;
+    else if (km <= 2000)
+      addDays = 5;
+    else
+      addDays = 7;
     final d = now.add(Duration(days: addDays));
     const names = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
     final weekday = names[(d.weekday - 1) % 7];
     return "Expected by: $weekday, ${d.day} ${months[d.month - 1]} ${d.year}";
   }
@@ -169,8 +213,12 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> with TickerProv
         final customerId = r.id;
         String username = 'User';
         try {
-          final userDoc = await FirebaseFirestore.instance.collection('users').doc(customerId).get();
-          if (userDoc.exists) username = (userDoc.data()?['username'] ?? 'User') as String;
+          final userDoc = await FirebaseFirestore.instance
+              .collection('users')
+              .doc(customerId)
+              .get();
+          if (userDoc.exists)
+            username = (userDoc.data()?['username'] ?? 'User') as String;
         } catch (_) {}
         tmp.add({
           'id': customerId,
@@ -187,19 +235,26 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> with TickerProv
     if (_productDocRef == null) return;
     await _productDocRef!.collection('Rating').doc(id).delete();
     await _loadReviews();
-    if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Review deleted")));
+    if (mounted)
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Review deleted")));
   }
 
   Future<void> _submitReview(int rating, String reviewText) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Please login to write a review.")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please login to write a review.")),
+      );
       return;
     }
     if (_productDocRef == null) {
       await _findProductDoc();
       if (_productDocRef == null) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Product document not found.")));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Product document not found.")),
+        );
         return;
       }
     }
@@ -217,15 +272,24 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> with TickerProv
       final updatedRating = await _fetchAverageRating();
       if (mounted) setState(() => _accurateRating = updatedRating);
 
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Review submitted!")));
+      if (mounted)
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text("Review submitted!")));
     } catch (_) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Failed to save review.")));
+      if (mounted)
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text("Failed to save review.")));
     } finally {
       if (mounted) setState(() => _savingReview = false);
     }
   }
 
-  Future<void> _showWriteReviewDialog({int? existingRating, String? existingText}) async {
+  Future<void> _showWriteReviewDialog({
+    int? existingRating,
+    String? existingText,
+  }) async {
     int rating = existingRating ?? 5;
     final ctrl = TextEditingController(text: existingText ?? "");
     await showDialog(
@@ -233,31 +297,41 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> with TickerProv
       builder: (ctx) {
         return AlertDialog(
           title: const Text("Write a review"),
-          content: StatefulBuilder(builder: (c, setSt) {
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(5, (i) {
-                    final idx = i + 1;
-                    return IconButton(
-                      icon: Icon(idx <= rating ? Icons.star : Icons.star_border, color: Colors.amber),
-                      onPressed: () => setSt(() => rating = idx),
-                    );
-                  }),
-                ),
-                TextField(
-                  controller: ctrl,
-                  minLines: 3,
-                  maxLines: 5,
-                  decoration: const InputDecoration(hintText: "Write your review"),
-                ),
-              ],
-            );
-          }),
+          content: StatefulBuilder(
+            builder: (c, setSt) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(5, (i) {
+                      final idx = i + 1;
+                      return IconButton(
+                        icon: Icon(
+                          idx <= rating ? Icons.star : Icons.star_border,
+                          color: Colors.amber,
+                        ),
+                        onPressed: () => setSt(() => rating = idx),
+                      );
+                    }),
+                  ),
+                  TextField(
+                    controller: ctrl,
+                    minLines: 3,
+                    maxLines: 5,
+                    decoration: const InputDecoration(
+                      hintText: "Write your review",
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("Cancel")),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text("Cancel"),
+            ),
             ElevatedButton(
               onPressed: () async {
                 Navigator.pop(ctx);
@@ -273,7 +347,9 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> with TickerProv
 
   @override
   Widget build(BuildContext context) {
-    final imgBytes = widget.product.image.isNotEmpty ? imgutils.decodeImageDataDynamic(widget.product.image) : null;
+    final imgBytes = widget.product.image.isNotEmpty
+        ? imgutils.decodeImageDataDynamic(widget.product.image)
+        : null;
 
     return AppScaffold(
       title: widget.product.name,
@@ -299,44 +375,110 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> with TickerProv
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     if (imgBytes != null && imgBytes.isNotEmpty)
-                      Center(child: Image.memory(imgBytes, height: 240, fit: BoxFit.contain))
+                      Center(
+                        child: Image.memory(
+                          imgBytes,
+                          height: 240,
+                          fit: BoxFit.contain,
+                        ),
+                      )
                     else
-                      Container(height: 240, color: Colors.grey.shade200, child: const Center(child: Icon(Icons.image_not_supported, size: 60))),
+                      Container(
+                        height: 240,
+                        color: Colors.grey.shade200,
+                        child: const Center(
+                          child: Icon(Icons.image_not_supported, size: 60),
+                        ),
+                      ),
                     const SizedBox(height: 16),
-                    Text(widget.product.name, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+                    Text(
+                      widget.product.name,
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     const SizedBox(height: 8),
                     Row(
                       children: [
-                        Text("₹${widget.product.price}", style: const TextStyle(fontSize: 20, color: Colors.green)),
+                        Text(
+                          "₹${widget.product.price}",
+                          style: const TextStyle(
+                            fontSize: 20,
+                            color: Colors.green,
+                          ),
+                        ),
                         const SizedBox(width: 10),
-                        buildStars(_accurateRating ?? widget.product.avgRating, size: 18),
+                        buildStars(
+                          _accurateRating ?? widget.product.avgRating,
+                          size: 18,
+                        ),
                       ],
                     ),
                     const SizedBox(height: 12),
                     if (widget.product.description.isNotEmpty)
-                      Text(widget.product.description, style: const TextStyle(fontSize: 17))
+                      Text(
+                        widget.product.description,
+                        style: const TextStyle(fontSize: 17),
+                      )
                     else
                       const SizedBox.shrink(),
                     const SizedBox(height: 10),
-                    _infoRow(Icons.inventory_2_outlined, "Stock", "${widget.product.stock}"),
+                    _infoRow(
+                      Icons.inventory_2_outlined,
+                      "Stock",
+                      "${widget.product.stock}",
+                    ),
                     const SizedBox(height: 5),
-                    _infoRow(Icons.store_outlined, "Sold by", sellerName.isNotEmpty ? sellerName : "Unknown Seller"),
+                    _infoRow(
+                      Icons.store_outlined,
+                      "Sold by",
+                      sellerName.isNotEmpty ? sellerName : "Unknown Seller",
+                    ),
                     const SizedBox(height: 5),
-                    if (distanceKmVal != null) _infoRow(Icons.location_on_outlined, "Distance", "${distanceKmVal!.toStringAsFixed(2)} km"),
+                    if (distanceKmVal != null)
+                      _infoRow(
+                        Icons.location_on_outlined,
+                        "Distance",
+                        "${distanceKmVal!.toStringAsFixed(2)} km",
+                      ),
                     const SizedBox(height: 5),
                     if (deliverByString.isNotEmpty)
-                      _infoRow(Icons.local_shipping_outlined, "Delivery", deliverByString),
+                      _infoRow(
+                        Icons.local_shipping_outlined,
+                        "Delivery",
+                        deliverByString,
+                      ),
                     const SizedBox(height: 20),
                     GestureDetector(
-                      onTap: () => setState(() => _reviewsExpanded = !_reviewsExpanded),
+                      onTap: () =>
+                          setState(() => _reviewsExpanded = !_reviewsExpanded),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text("Reviews & Ratings (${reviews.length})", style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600)),
-                          Row(children: [
-                            Text(_reviewsExpanded ? "Hide" : "Show", style: TextStyle(color: Theme.of(context).primaryColor)),
-                            Icon(_reviewsExpanded ? Icons.expand_less : Icons.expand_more, color: Theme.of(context).primaryColor),
-                          ])
+                          Text(
+                            "Reviews & Ratings (${reviews.length})",
+                            style: const TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              Text(
+                                _reviewsExpanded ? "Hide" : "Show",
+                                style: TextStyle(
+                                  color: Theme.of(context).primaryColor,
+                                ),
+                              ),
+                              Icon(
+                                _reviewsExpanded
+                                    ? Icons.expand_less
+                                    : Icons.expand_more,
+                                color: Theme.of(context).primaryColor,
+                              ),
+                            ],
+                          ),
                         ],
                       ),
                     ),
@@ -345,7 +487,9 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> with TickerProv
                       duration: const Duration(milliseconds: 300),
                       curve: Curves.easeInOut,
                       child: ConstrainedBox(
-                        constraints: _reviewsExpanded ? const BoxConstraints() : const BoxConstraints(maxHeight: 0),
+                        constraints: _reviewsExpanded
+                            ? const BoxConstraints()
+                            : const BoxConstraints(maxHeight: 0),
                         child: _buildReviewsList(),
                       ),
                     ),
@@ -371,12 +515,15 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> with TickerProv
             text: TextSpan(
               style: const TextStyle(color: Colors.black87, fontSize: 16),
               children: [
-                TextSpan(text: "$label: ", style: const TextStyle(fontWeight: FontWeight.w600)),
+                TextSpan(
+                  text: "$label: ",
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
                 TextSpan(text: value),
               ],
             ),
           ),
-        )
+        ),
       ],
     );
   }
@@ -413,30 +560,63 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> with TickerProv
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                    Text(username, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-                    if (isOwn)
-                      Row(
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.edit, size: 18, color: Colors.blueGrey),
-                            onPressed: () => _showWriteReviewDialog(existingRating: rRating, existingText: reviewText),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.delete, size: 18, color: Colors.redAccent),
-                            onPressed: () => _deleteReview(r['id']),
-                          ),
-                        ],
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        username,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                        ),
                       ),
-                  ]),
-                  Row(children: List.generate(5, (i) {
-                    final filled = i < (rRating is num ? rRating.toInt() : int.tryParse(rRating.toString()) ?? 0);
-                    return Icon(filled ? Icons.star : Icons.star_border, size: 13, color: Colors.amber);
-                  })),
+                      if (isOwn)
+                        Row(
+                          children: [
+                            IconButton(
+                              icon: const Icon(
+                                Icons.edit,
+                                size: 18,
+                                color: Colors.blueGrey,
+                              ),
+                              onPressed: () => _showWriteReviewDialog(
+                                existingRating: rRating,
+                                existingText: reviewText,
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(
+                                Icons.delete,
+                                size: 18,
+                                color: Colors.redAccent,
+                              ),
+                              onPressed: () => _deleteReview(r['id']),
+                            ),
+                          ],
+                        ),
+                    ],
+                  ),
+                  Row(
+                    children: List.generate(5, (i) {
+                      final filled =
+                          i <
+                          (rRating is num
+                              ? rRating.toInt()
+                              : int.tryParse(rRating.toString()) ?? 0);
+                      return Icon(
+                        filled ? Icons.star : Icons.star_border,
+                        size: 13,
+                        color: Colors.amber,
+                      );
+                    }),
+                  ),
                   if (reviewText.isNotEmpty)
                     Padding(
                       padding: const EdgeInsets.only(top: 3),
-                      child: Text(reviewText, style: const TextStyle(fontSize: 13.5)),
+                      child: Text(
+                        reviewText,
+                        style: const TextStyle(fontSize: 13.5),
+                      ),
                     ),
                 ],
               ),
@@ -453,7 +633,10 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> with TickerProv
     return ElevatedButton.icon(
       onPressed: _showWriteReviewDialog,
       icon: const Icon(Icons.edit, size: 18, color: Colors.black),
-      label: const Text('Write a review', style: TextStyle(color: Colors.black, fontSize: 15)),
+      label: const Text(
+        'Write a review',
+        style: TextStyle(color: Colors.black, fontSize: 15),
+      ),
       style: ElevatedButton.styleFrom(
         backgroundColor: Colors.grey.shade100,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -467,7 +650,13 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> with TickerProv
       padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
       decoration: BoxDecoration(
         color: Theme.of(context).scaffoldBackgroundColor,
-        boxShadow: [BoxShadow(color: Colors.black.withAlpha(25), blurRadius: 6, offset: const Offset(0, -2))],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(25),
+            blurRadius: 6,
+            offset: const Offset(0, -2),
+          ),
+        ],
       ),
       child: SafeArea(
         top: false,
@@ -475,7 +664,34 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> with TickerProv
           children: [
             Expanded(
               child: ElevatedButton(
-                onPressed: () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Added to cart"))),
+                onPressed: () async {
+                  final cart = Provider.of<CartProvider>(
+                    context,
+                    listen: false,
+                  );
+                  final productPath =
+                      'products/Categories/${widget.product.extraData?['category'] ?? 'unknown'}/${widget.product.id}';
+                  await cart.fetchStock(widget.product.id, productPath);
+
+                  cart.addItem(
+                    OrderItem(
+                      productId: widget.product.id,
+                      name: widget.product.name,
+                      price: widget.product.price.toDouble(),
+                      quantity: 1,
+                      sellerId: widget.product.sellerId,
+                      image: widget.product.image,
+                      productPath: productPath,
+                    ),
+                  );
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('${widget.product.name} added to cart'),
+                      duration: const Duration(seconds: 1),
+                    ),
+                  );
+                },
                 child: const Text("Add to Cart"),
               ),
             ),
@@ -483,7 +699,9 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> with TickerProv
             Expanded(
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
-                onPressed: () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Buy Now"))),
+                onPressed: () => ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(const SnackBar(content: Text("Buy Now"))),
                 child: const Text("Buy Now"),
               ),
             ),
@@ -493,5 +711,3 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> with TickerProv
     );
   }
 }
-
-

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:local_mart/modules/customer_order/models/order_model.dart';
+import 'package:local_mart/modules/customer_order/providers/cart_provider.dart';
+import 'package:provider/provider.dart';
 import '../../models/product.dart';
 import 'widgets/product_card.dart';
 import 'product_details.dart';
@@ -27,7 +30,10 @@ class _ProductsPageState extends State<ProductsPage> {
 
   Future<List<Product>> _fetchProductsForCategory(String category) async {
     final firestore = FirebaseFirestore.instance;
-    final col = firestore.collection('products').doc('Categories').collection(category);
+    final col = firestore
+        .collection('products')
+        .doc('Categories')
+        .collection(category);
     final snapshot = await col.get();
     final products = <Product>[];
 
@@ -54,7 +60,9 @@ class _ProductsPageState extends State<ProductsPage> {
         double total = 0;
         for (var r in ratingSnapshot.docs) {
           final val = r.data()['rating'] ?? r.data()['Rating'] ?? 0;
-          total += (val is num) ? val.toDouble() : double.tryParse(val.toString()) ?? 0.0;
+          total += (val is num)
+              ? val.toDouble()
+              : double.tryParse(val.toString()) ?? 0.0;
         }
         avgRating = total / ratingSnapshot.docs.length;
       }
@@ -63,12 +71,20 @@ class _ProductsPageState extends State<ProductsPage> {
       // Compute distance if seller address available
       if (userLat != null && userLng != null && data['sellerId'] != null) {
         try {
-          final sellerDoc = await firestore.collection('users').doc(data['sellerId']).get();
+          final sellerDoc = await firestore
+              .collection('users')
+              .doc(data['sellerId'])
+              .get();
           final sellerAddr = sellerDoc.data()?['address'];
           if (sellerAddr != null) {
             final sLat = (sellerAddr['lat'] ?? 0).toDouble();
             final sLng = (sellerAddr['lng'] ?? 0).toDouble();
-            final km = distanceKm(lat1: userLat, lng1: userLng, lat2: sLat, lng2: sLng);
+            final km = distanceKm(
+              lat1: userLat,
+              lng1: userLng,
+              lat2: sLat,
+              lng2: sLng,
+            );
             data['__distanceKm'] = km;
           }
         } catch (_) {}
@@ -81,7 +97,6 @@ class _ProductsPageState extends State<ProductsPage> {
     products.addAll(resolved);
     return products;
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -113,9 +128,34 @@ class _ProductsPageState extends State<ProductsPage> {
               final p = products[index];
               return ProductCard(
                 product: p,
-                onAddToCart: () {
+                onAddToCart: () async {
+                  print("Adding to cart: ${p.name}");
+                  final cart = Provider.of<CartProvider>(
+                    context,
+                    listen: false,
+                  );
+                  final productPath =
+                      'products/Categories/${p.extraData?['category'] ?? 'unknown'}/${p.id}';
+                  await cart.fetchStock(p.id, productPath);
+                  print("Current stock for ${p.name}: ${cart.getStock(p.id)}");
+
+                  cart.addItem(
+                    OrderItem(
+                      productId: p.id,
+                      name: p.name,
+                      price: p.price.toDouble(),
+                      quantity: 1,
+                      sellerId: p.sellerId,
+                      image: p.image,
+                      productPath: productPath,
+                    ),
+                  );
+                  print("Added to cart: ${p.name}");
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Added to cart")),
+                    SnackBar(
+                      content: Text('${p.name} added to cart'),
+                      duration: const Duration(seconds: 1),
+                    ),
                   );
                 },
                 onBuyNow: () {
@@ -127,10 +167,8 @@ class _ProductsPageState extends State<ProductsPage> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => ProductDetailsPage(
-                        product: p,
-                        fromIndex: 0,
-                      ),
+                      builder: (_) =>
+                          ProductDetailsPage(product: p, fromIndex: 0),
                     ),
                   );
                 },

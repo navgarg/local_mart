@@ -120,8 +120,10 @@ class _RecommendedForYouState extends State<RecommendedForYou> {
           final product = Product.fromFirestore(data, doc.id);
 
           // Fetch accurate average rating dynamically
-          final avgRating =
-          await _getAverageRating(_topCategories.first, doc.id);
+          final avgRating = await _getAverageRating(
+            _topCategories.first,
+            doc.id,
+          );
 
           newProducts.add(product.copyWith(avgRating: avgRating));
         }
@@ -157,7 +159,9 @@ class _RecommendedForYouState extends State<RecommendedForYou> {
     const horizontalPadding = 12.0;
 
     final usableWidth =
-        screenWidth - (horizontalPadding * 2) - (spacing * (crossAxisCount - 1));
+        screenWidth -
+        (horizontalPadding * 2) -
+        (spacing * (crossAxisCount - 1));
     final itemWidth = usableWidth / crossAxisCount;
     final itemHeight = itemWidth * 1.55;
     final aspectRatio = itemWidth / itemHeight;
@@ -184,32 +188,32 @@ class _RecommendedForYouState extends State<RecommendedForYou> {
             child: _products.isEmpty && _isLoading
                 ? _buildShimmerGrid(aspectRatio)
                 : GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: crossAxisCount,
-                crossAxisSpacing: spacing,
-                mainAxisSpacing: spacing,
-                childAspectRatio: aspectRatio,
-              ),
-              itemCount: _products.length,
-              itemBuilder: (context, index) {
-                final product = _products[index];
-                return ProductCard(
-                  product: product,
-                  showFullDetails: false,
-                  onOpenDetails: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            ProductDetailsPage(product: product),
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: crossAxisCount,
+                      crossAxisSpacing: spacing,
+                      mainAxisSpacing: spacing,
+                      childAspectRatio: aspectRatio,
+                    ),
+                    itemCount: _products.length,
+                    itemBuilder: (context, index) {
+                      final product = _products[index];
+                      return ProductCard(
+                        product: product,
+                        showFullDetails: false,
+                        onOpenDetails: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  ProductDetailsPage(product: product),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
           ),
         ],
       ),
