@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:local_mart/theme.dart';
+
 import 'package:provider/provider.dart';
 
 import '../providers/order_provider.dart';
@@ -66,13 +66,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          "My Orders",
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
-        ),
-        backgroundColor: AppTheme.primaryColor,
-      ),
+
 
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
@@ -82,8 +76,9 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
             .orderBy('placedAt', descending: true)
             .snapshots(),
         builder: (context, snapshot) {
-          if (!snapshot.hasData)
+          if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
+          }
 
           final orders = snapshot.data!.docs;
           if (orders.isEmpty) {
@@ -95,7 +90,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
           return ListView.separated(
             padding: const EdgeInsets.all(12),
             itemCount: orders.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 10),
+            separatorBuilder: (_, _) => const SizedBox(height: 10),
             itemBuilder: (context, index) {
               final data = orders[index].data() as Map<String, dynamic>;
               final orderId = orders[index].id;

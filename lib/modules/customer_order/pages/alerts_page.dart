@@ -16,16 +16,6 @@ class AlertsPage extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          "Alerts",
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        backgroundColor: AppTheme.primaryColor,
-      ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('users')
@@ -34,8 +24,9 @@ class AlertsPage extends StatelessWidget {
             .orderBy('timestamp', descending: true)
             .snapshots(),
         builder: (context, snapshot) {
-          if (!snapshot.hasData)
+          if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
+          }
 
           final notifications = snapshot.data!.docs;
 
@@ -51,7 +42,7 @@ class AlertsPage extends StatelessWidget {
           return ListView.separated(
             padding: const EdgeInsets.all(12),
             itemCount: notifications.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 10),
+            separatorBuilder: (_, _) => const SizedBox(height: 10),
             itemBuilder: (context, index) {
               final doc = notifications[index];
               final data = doc.data() as Map<String, dynamic>;
@@ -74,7 +65,9 @@ class AlertsPage extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: read ? Colors.white : Colors.blue.withOpacity(0.09),
+                    color: read
+                        ? Colors.white
+                        : Colors.blue.withAlpha((255 * 0.09).round()),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(color: Colors.grey.shade300),
                   ),

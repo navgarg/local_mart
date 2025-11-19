@@ -90,16 +90,6 @@ class _CartPageState extends State<CartPage> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'My Cart',
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        backgroundColor: AppTheme.primaryColor,
-      ),
       body: cart.isEmpty
           ? _buildEmptyCart(theme, context)
           : Column(
@@ -286,11 +276,11 @@ class _CartPageState extends State<CartPage> {
                                     ),
                                   );
                                 },
-                             style: ElevatedButton.styleFrom(
-                             padding: const EdgeInsets.symmetric(horizontal: 18),
-                             shape: RoundedRectangleBorder(
-                               borderRadius: BorderRadius.circular(8),
-                             ),
+                          style: ElevatedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 18),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
                           ),
                           child: const Text('Proceed to Checkout'),
                         ),
