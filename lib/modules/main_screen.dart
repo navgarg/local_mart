@@ -1,10 +1,10 @@
 // lib/modules/main_screen.dart
 import 'package:flutter/material.dart';
 import 'home_screen/home_screen.dart';
-import '../widgets/bottom_nav_bar.dart';
+
 import 'account_page.dart';
-import 'cart_page.dart';
-import 'alerts_page.dart';
+import 'customer_order/pages/cart_page.dart';
+import 'customer_order/pages/alerts_page.dart';
 import '../widgets/app_scaffold.dart';
 
 class MainScreen extends StatefulWidget {
