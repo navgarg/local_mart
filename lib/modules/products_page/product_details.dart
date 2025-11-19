@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:logger/logger.dart';
 
 import '../../models/product.dart';
 import 'package:provider/provider.dart';
@@ -56,8 +57,8 @@ class _ProductDetailsPageState extends State<ProductDetailsPage>
     //  Fetch latest average rating
     final updatedRating = await _fetchAverageRating();
     if (mounted) {
-        setState(() => _accurateRating = updatedRating);
-      }
+      setState(() => _accurateRating = updatedRating);
+    }
   }
 
   ///  Fetch accurate average rating directly from Firestore
@@ -170,23 +171,18 @@ class _ProductDetailsPageState extends State<ProductDetailsPage>
     final now = DateTime.now();
     int addDays;
     if (km <= 5) {
-          addDays = 1;
-        }
-    else if (km <= 200) {
-          addDays = 2;
-        }
-    else if (km <= 800) {
-          addDays = 3;
-        }
-    else if (km <= 1000) {
-          addDays = 4;
-        }
-    else if (km <= 2000) {
-          addDays = 5;
-        }
-    else {
-          addDays = 7;
-        }
+      addDays = 1;
+    } else if (km <= 200) {
+      addDays = 2;
+    } else if (km <= 800) {
+      addDays = 3;
+    } else if (km <= 1000) {
+      addDays = 4;
+    } else if (km <= 2000) {
+      addDays = 5;
+    } else {
+      addDays = 7;
+    }
     final d = now.add(Duration(days: addDays));
     const names = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     const months = [
@@ -213,8 +209,8 @@ class _ProductDetailsPageState extends State<ProductDetailsPage>
       if (_productDocRef == null) await _findProductDoc();
       if (_productDocRef == null) {
         if (mounted) {
-      setState(() => reviews = tmp);
-    }
+          setState(() => reviews = tmp);
+        }
         return;
       }
       final ratingSnap = await _productDocRef!.collection('Rating').get();
@@ -297,9 +293,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage>
           context,
         ).showSnackBar(const SnackBar(content: Text("Failed to save review.")));
       }
-    } finally {
-
-    }
+    } finally {}
   }
 
   Future<void> _showWriteReviewDialog({
@@ -681,13 +675,49 @@ class _ProductDetailsPageState extends State<ProductDetailsPage>
             Expanded(
               child: ElevatedButton(
                 onPressed: () async {
+                  final scaffoldMessenger = ScaffoldMessenger.of(context);
                   final cart = Provider.of<CartProvider>(
                     context,
                     listen: false,
                   );
-                  final productPath =
-                      'products/Categories/${widget.product.extraData?['category'] ?? 'unknown'}/${widget.product.id}';
+                  if (_productDocRef == null) {
+                          await _findProductDoc();
+                        }
+                        if (_productDocRef == null) {
+                          if (mounted) {
+                            scaffoldMessenger.showSnackBar(
+                              const SnackBar(
+                                content: Text('Product not found.'),
+                                duration: Duration(seconds: 2),
+                              ),
+                            );
+                          }
+                          return;
+                        }
+                        final productPath = _productDocRef!.path;
                   await cart.fetchStock(widget.product.id, productPath);
+
+                  final currentQuantity = cart.getItemQuantity(
+                    widget.product.id,
+                  );
+                  final availableStock = cart.getStock(widget.product.id);
+                  Logger().i(
+                    "Available stock for ${widget.product.name}: $availableStock",
+                  );
+
+                  if (currentQuantity >= availableStock) {
+                    if (mounted) {
+                      scaffoldMessenger.showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Cannot add more ${widget.product.name}. Only $availableStock in stock.',
+                          ),
+                          duration: const Duration(seconds: 2),
+                        ),
+                      );
+                    }
+                    return;
+                  }
 
                   cart.addItem(
                     OrderItem(
@@ -702,7 +732,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage>
                   );
 
                   if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
+                    scaffoldMessenger.showSnackBar(
                       SnackBar(
                         content: Text('${widget.product.name} added to cart'),
                         duration: const Duration(seconds: 1),

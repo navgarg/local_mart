@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:local_mart/modules/customer_order/models/order_model.dart';
 import 'package:local_mart/modules/customer_order/providers/cart_provider.dart';
@@ -90,6 +91,7 @@ class _ProductsPageState extends State<ProductsPage> {
         } catch (_) {}
       }
 
+      data['category'] = category;
       return Product.fromFirestore(data, doc.id);
     }).toList();
 
@@ -129,15 +131,18 @@ class _ProductsPageState extends State<ProductsPage> {
               return ProductCard(
                 product: p,
                 onAddToCart: () async {
-                  print("Adding to cart: ${p.name}");
+                  Logger().i("Adding to cart: ${p.name}");
+                  final scaffoldMessenger = ScaffoldMessenger.of(context);
                   final cart = Provider.of<CartProvider>(
                     context,
                     listen: false,
                   );
                   final productPath =
-                      'products/Categories/${p.extraData?['category'] ?? 'unknown'}/${p.id}';
+                      'products/Categories/${p.extraData?['category']}/${p.id}';
                   await cart.fetchStock(p.id, productPath);
-                  print("Current stock for ${p.name}: ${cart.getStock(p.id)}");
+                  Logger().i(
+                    "Current stock for ${p.name}: ${cart.getStock(p.id)}",
+                  );
 
                   cart.addItem(
                     OrderItem(
@@ -148,10 +153,12 @@ class _ProductsPageState extends State<ProductsPage> {
                       sellerId: p.sellerId,
                       image: p.image,
                       productPath: productPath,
+                      stock: cart.getStock(p.id),
                     ),
                   );
-                  print("Added to cart: ${p.name}");
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  Logger().i("Added to cart: ${p.name}");
+                  if (!mounted) return;
+                  scaffoldMessenger.showSnackBar(
                     SnackBar(
                       content: Text('${p.name} added to cart'),
                       duration: const Duration(seconds: 1),

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:logger/logger.dart';
 import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 
@@ -35,6 +36,8 @@ class OrderService {
         final Map<DocumentReference, int> stockMap = {};
 
         for (final item in order.items) {
+          Logger().i("Processing item: ${item.toJson()}");
+          Logger().i("Product path: ${item.productPath}");
           final productRef = _db.doc(item.productPath);
           final productSnap = await txn.get(productRef); //  READ FIRST
 

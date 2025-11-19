@@ -194,7 +194,7 @@ class _CartPageState extends State<CartPage> {
                               ],
                             ),
                           );
-                        }).toList(),
+                        }),
                         const SizedBox(height: 12),
                       ],
                     ),
@@ -320,7 +320,7 @@ class _CartPageState extends State<CartPage> {
           const SizedBox(height: 12),
           ElevatedButton(
             onPressed: () {
-              Navigator.pushNamed(context, '/inventory');
+              Navigator.pushNamed(context, '/home');
             },
             child: const Text('Browse Products'),
           ),

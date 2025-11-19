@@ -19,6 +19,8 @@ class CartProvider with ChangeNotifier {
 
   // -------------------- Getters --------------------
 
+  int getItemQuantity(String productId) => _items[productId]?.quantity ?? 0;
+
   bool get isEmpty => _items.isEmpty;
   List<app_models.OrderItem> get items => List.unmodifiable(_items.values);
 
@@ -37,11 +39,21 @@ class CartProvider with ChangeNotifier {
   // --------------------------------------------------------------------------
   Future<void> fetchStock(String productId, String productPath) async {
     try {
+      debugPrint('Fetching stock for productId: $productId, path: $productPath');
       final doc = await FirebaseFirestore.instance.doc(productPath).get();
-      if (doc.exists && doc.data()?['stock'] != null) {
-        _stockCache[productId] = (doc.data()!['stock'] as num).toInt();
+      if (doc.exists) {
+        final data = doc.data();
+        debugPrint('Fetched document data for $productId: $data');
+        if (data?['stock'] != null) {
+          _stockCache[productId] = (data!['stock'] as num).toInt();
+          debugPrint('Stock for $productId set to: ${_stockCache[productId]}');
+        } else {
+          _stockCache[productId] = 0;
+          debugPrint('Stock field not found or is null for $productId. Setting to 0.');
+        }
       } else {
         _stockCache[productId] = 0;
+        debugPrint('Document does not exist for $productId. Setting stock to 0.');
       }
       notifyListeners();
     } catch (e) {
