@@ -35,7 +35,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage>
   List<Map<String, dynamic>> reviews = [];
   bool _reviewsExpanded = false;
   DocumentReference? _productDocRef;
-  bool _savingReview = false;
+
   String? currentUserId;
   double? _accurateRating; // new field
 
@@ -55,7 +55,9 @@ class _ProductDetailsPageState extends State<ProductDetailsPage>
 
     //  Fetch latest average rating
     final updatedRating = await _fetchAverageRating();
-    if (mounted) setState(() => _accurateRating = updatedRating);
+    if (mounted) {
+        setState(() => _accurateRating = updatedRating);
+      }
   }
 
   ///  Fetch accurate average rating directly from Firestore
@@ -167,18 +169,24 @@ class _ProductDetailsPageState extends State<ProductDetailsPage>
   String _deliverByStringFromDistance(double km) {
     final now = DateTime.now();
     int addDays;
-    if (km <= 5)
-      addDays = 1;
-    else if (km <= 200)
-      addDays = 2;
-    else if (km <= 800)
-      addDays = 3;
-    else if (km <= 1000)
-      addDays = 4;
-    else if (km <= 2000)
-      addDays = 5;
-    else
-      addDays = 7;
+    if (km <= 5) {
+          addDays = 1;
+        }
+    else if (km <= 200) {
+          addDays = 2;
+        }
+    else if (km <= 800) {
+          addDays = 3;
+        }
+    else if (km <= 1000) {
+          addDays = 4;
+        }
+    else if (km <= 2000) {
+          addDays = 5;
+        }
+    else {
+          addDays = 7;
+        }
     final d = now.add(Duration(days: addDays));
     const names = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     const months = [
@@ -204,7 +212,9 @@ class _ProductDetailsPageState extends State<ProductDetailsPage>
     try {
       if (_productDocRef == null) await _findProductDoc();
       if (_productDocRef == null) {
-        if (mounted) setState(() => reviews = tmp);
+        if (mounted) {
+      setState(() => reviews = tmp);
+    }
         return;
       }
       final ratingSnap = await _productDocRef!.collection('Rating').get();
@@ -217,8 +227,9 @@ class _ProductDetailsPageState extends State<ProductDetailsPage>
               .collection('users')
               .doc(customerId)
               .get();
-          if (userDoc.exists)
+          if (userDoc.exists) {
             username = (userDoc.data()?['username'] ?? 'User') as String;
+          }
         } catch (_) {}
         tmp.add({
           'id': customerId,
@@ -235,15 +246,17 @@ class _ProductDetailsPageState extends State<ProductDetailsPage>
     if (_productDocRef == null) return;
     await _productDocRef!.collection('Rating').doc(id).delete();
     await _loadReviews();
-    if (mounted)
+    if (mounted) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text("Review deleted")));
+    }
   }
 
   Future<void> _submitReview(int rating, String reviewText) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Please login to write a review.")),
       );
@@ -252,13 +265,14 @@ class _ProductDetailsPageState extends State<ProductDetailsPage>
     if (_productDocRef == null) {
       await _findProductDoc();
       if (_productDocRef == null) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Product document not found.")),
         );
         return;
       }
     }
-    if (mounted) setState(() => _savingReview = true);
+
     try {
       final rRef = _productDocRef!.collection('Rating').doc(user.uid);
       await rRef.set({
@@ -272,17 +286,19 @@ class _ProductDetailsPageState extends State<ProductDetailsPage>
       final updatedRating = await _fetchAverageRating();
       if (mounted) setState(() => _accurateRating = updatedRating);
 
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(const SnackBar(content: Text("Review submitted!")));
+      }
     } catch (_) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(const SnackBar(content: Text("Failed to save review.")));
+      }
     } finally {
-      if (mounted) setState(() => _savingReview = false);
+
     }
   }
 
@@ -547,7 +563,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage>
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: reviews.length,
-          separatorBuilder: (_, __) => const Divider(height: 8),
+          separatorBuilder: (_, _) => const Divider(height: 8),
           itemBuilder: (context, idx) {
             final r = reviews[idx];
             final rRating = (r['rating'] ?? 0);
@@ -685,12 +701,14 @@ class _ProductDetailsPageState extends State<ProductDetailsPage>
                     ),
                   );
 
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('${widget.product.name} added to cart'),
-                      duration: const Duration(seconds: 1),
-                    ),
-                  );
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('${widget.product.name} added to cart'),
+                        duration: const Duration(seconds: 1),
+                      ),
+                    );
+                  }
                 },
                 child: const Text("Add to Cart"),
               ),

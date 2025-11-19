@@ -1,7 +1,7 @@
 // lib/modules/products_page/widgets/product_card.dart
 import 'package:flutter/material.dart';
 import '../../../models/product.dart';
-import 'dart:typed_data';
+
 import '../../../utils/image_utils.dart';
 import '../../../widgets/star_rating.dart';
 
