@@ -20,6 +20,9 @@ import 'package:local_mart/modules/retailer/pages/retailer_customer_history_page
 import 'package:local_mart/modules/retailer_wholesaler_order/services/retailer_wholesaler_order_service.dart';
 import 'package:local_mart/modules/retailer_wholesaler_order/pages/retailer_wholesaler_order_list_page.dart';
 import 'package:local_mart/modules/retailer_wholesaler_order/pages/retailer_wholesaler_order_form_page.dart';
+import 'package:local_mart/providers/user_provider.dart';
+import 'package:local_mart/modules/wholesaler/services/wholesaler_retailer_history_service.dart';
+import 'package:local_mart/modules/wholesaler/pages/wholesaler_retailer_history_list_page.dart';
 import 'package:local_mart/modules/login/screens/address_details_screen.dart';
 import 'package:local_mart/modules/login/screens/age_question_screen.dart';
 import 'package:local_mart/modules/login/screens/buisness_details_screen.dart';
@@ -138,9 +141,11 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => CartProvider()),
         ChangeNotifierProvider(create: (_) => OrderProvider()),
+        ChangeNotifierProvider(create: (_) => UserProvider()),
         Provider(create: (_) => RetailerProductService()),
-            Provider(create: (_) => RetailerOrderService()),
-            Provider(create: (_) => RetailerWholesalerOrderService()),
+        Provider(create: (_) => RetailerOrderService()),
+        Provider(create: (_) => RetailerWholesalerOrderService()),
+        Provider(create: (_) => WholesalerRetailerHistoryService()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -171,9 +176,14 @@ class MyApp extends StatelessWidget {
 
           // ---------- RETAILER ROUTES ----------
           '/retailer-inventory': (context) => const RetailerInventoryPage(),
-                    '/retailer-customer-history': (context) => const RetailerCustomerHistoryPage(),
-          '/retailer-wholesaler-orders': (context) => const RetailerWholesalerOrderListPage(),
-          '/retailer-wholesaler-order-form': (context) => const RetailerWholesalerOrderFormPage(),
+          '/retailer-customer-history': (context) =>
+              const RetailerCustomerHistoryPage(),
+          '/retailer-wholesaler-orders': (context) =>
+              const RetailerWholesalerOrderListPage(),
+          '/retailer-wholesaler-order-form': (context) =>
+              const RetailerWholesalerOrderFormPage(),
+          '/wholesaler-retailer-history': (context) =>
+              const WholesalerRetailerHistoryListPage(),
 
           // ---------- CUSTOMER ORDER ROUTES ----------
           // '/products': (_) => const ProductsPage(),
