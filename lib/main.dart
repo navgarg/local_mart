@@ -43,7 +43,9 @@ import 'package:provider/provider.dart';
 
 // Firebase options
 import 'firebase_options.dart';
-import 'modules/main_screen.dart';
+import 'package:local_mart/modules/retailer/pages/retailer_dashboard_page.dart';
+import 'package:local_mart/modules/wholesaler/pages/wholesaler_dashboard_page.dart';
+import 'package:local_mart/modules/main_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -184,6 +186,8 @@ class MyApp extends StatelessWidget {
               const RetailerWholesalerOrderFormPage(),
           '/wholesaler-retailer-history': (context) =>
               const WholesalerRetailerHistoryListPage(),
+          '/wholesaler-dashboard': (context) => const WholesalerDashboardPage(),
+          '/retailer-dashboard': (context) => const RetailerDashboardPage(),
 
           // ---------- CUSTOMER ORDER ROUTES ----------
           // '/products': (_) => const ProductsPage(),

@@ -11,12 +11,12 @@ class UserProvider with ChangeNotifier {
   UserProvider() {
     _currentUser = FirebaseAuth.instance.currentUser;
     if (_currentUser != null) {
-      _fetchUserRoleAndIds(_currentUser!.uid);
+      fetchUserRoleAndIds(_currentUser!.uid);
     }
     FirebaseAuth.instance.authStateChanges().listen((user) {
       _currentUser = user;
       if (user != null) {
-        _fetchUserRoleAndIds(user.uid);
+        fetchUserRoleAndIds(user.uid);
       } else {
         _userRole = null;
         _wholesalerId = null;
@@ -31,7 +31,7 @@ class UserProvider with ChangeNotifier {
   String? get wholesalerId => _wholesalerId;
   String? get retailerId => _retailerId;
 
-  Future<void> _fetchUserRoleAndIds(String uid) async {
+  Future<void> fetchUserRoleAndIds(String uid) async {
     try {
       final userDoc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
       if (userDoc.exists) {
@@ -64,7 +64,7 @@ class UserProvider with ChangeNotifier {
   // Method to refresh user data manually if needed
   Future<void> refreshUserData() async {
     if (_currentUser != null) {
-      await _fetchUserRoleAndIds(_currentUser!.uid);
+      await fetchUserRoleAndIds(_currentUser!.uid);
     }
   }
 }

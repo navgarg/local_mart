@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
+import 'package:local_mart/providers/user_provider.dart';
 import '../theme/theme.dart';
 import '../services/auth_service.dart';
 import '../widgets/input_field.dart';
@@ -29,6 +31,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   // EMAIL LOGIN
   Future<void> _loginWithEmail() async {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
     final mail = email.text.trim();
     final pass = password.text.trim();
 
@@ -39,9 +42,17 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       await _auth.signInWithEmailAndPassword(email: mail, password: pass);
+      if (!mounted) return;
       showAuthSnack(context, "Login successful!", success: true);
-      Navigator.pushReplacementNamed(context, '/home');
+
+      // Fetch user role after successful login
+      await userProvider.fetchUserRoleAndIds(_auth.currentUser!.uid);
+
+      if (!mounted) return; // Check if the widget is still mounted
+
+      _navigateToRoleBasedDashboard(userProvider.userRole);
     } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
       showAuthSnack(context, e.message ?? "Login failed");
     }
   }
@@ -99,6 +110,18 @@ class _LoginScreenState extends State<LoginScreen> {
     });
   }
 
+    void _navigateToRoleBasedDashboard(String? role) {
+    String route = '/home'; // Default to customer home
+
+    if (role == 'Retailer') {
+      route = '/retailer-dashboard';
+    } else if (role == 'Wholesaler') {
+      route = '/wholesaler-dashboard';
+    }
+
+    Navigator.pushReplacementNamed(context, route);
+  }
+
   // UI
   @override
   Widget build(BuildContext context) {
@@ -128,7 +151,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 Icon(
                   Icons.shopping_bag_rounded,
                   size: 64,
-                  color: Colors.black.withOpacity(0.85),
+                  color: Colors.black.withAlpha((255 * 0.85).round()),
                 ),
 
                 Text(
@@ -232,19 +255,25 @@ class _LoginScreenState extends State<LoginScreen> {
                       "https://cdn-icons-png.flaticon.com/512/733/733547.png",
                   textColor: Colors.white,
                   onTap: () async {
+                    final userProvider = Provider.of<UserProvider>(context, listen: false);
                     try {
                       final user = await _authService
                           .signInWithFacebookAndUpsert();
                       if (user != null) {
-                        showAuthSnack(
-                          context,
-                          "Logged in with Facebook!",
-                          success: true,
-                        );
-                        Navigator.pushReplacementNamed(context, '/home');
+                        await userProvider.fetchUserRoleAndIds(user.uid);
+                        if (mounted) {
+                          showAuthSnack(
+                            context,
+                            "Logged in with Facebook!",
+                            success: true,
+                          );
+                          _navigateToRoleBasedDashboard(userProvider.userRole);
+                        }
                       }
                     } catch (e) {
-                      showAuthSnack(context, "Facebook Sign-In failed: $e");
+                      if (mounted) {
+                        showAuthSnack(context, "Facebook Sign-In failed: $e");
+                      }
                     }
                   },
                 ),
@@ -260,19 +289,25 @@ class _LoginScreenState extends State<LoginScreen> {
                   textColor: Colors.black87,
                   border: true,
                   onTap: () async {
+                    final userProvider = Provider.of<UserProvider>(context, listen: false);
                     try {
                       final user = await _authService
                           .signInWithGoogleAndUpsert();
                       if (user != null) {
-                        showAuthSnack(
-                          context,
-                          "Logged in with Google!",
-                          success: true,
-                        );
-                        Navigator.pushReplacementNamed(context, '/home');
+                        await userProvider.fetchUserRoleAndIds(user.uid);
+                        if (mounted) {
+                          showAuthSnack(
+                            context,
+                            "Logged in with Google!",
+                            success: true,
+                          );
+                          _navigateToRoleBasedDashboard(userProvider.userRole);
+                        }
                       }
                     } catch (e) {
-                      showAuthSnack(context, "Google Sign-In failed: $e");
+                      if (mounted) {
+                        showAuthSnack(context, "Google Sign-In failed: $e");
+                      }
                     }
                   },
                 ),
@@ -336,11 +371,11 @@ class _LoginScreenState extends State<LoginScreen> {
     return Row(
       children: [
         Expanded(
-          child: Divider(color: Colors.black.withOpacity(0.3), endIndent: 8),
+          child: Divider(color: Colors.black.withAlpha((255 * 0.3).round()), endIndent: 8),
         ),
         Text(label, style: t.bodyMedium?.copyWith(fontSize: 14)),
         Expanded(
-          child: Divider(color: Colors.black.withOpacity(0.3), indent: 8),
+          child: Divider(color: Colors.black.withAlpha((255 * 0.3).round()), indent: 8),
         ),
       ],
     );
