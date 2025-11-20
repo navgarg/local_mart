@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:local_mart/models/app_user.dart';
+import 'package:local_mart/modules/customer_order/pages/order_history_page.dart';
 
 class AccountPage extends StatefulWidget {
   const AccountPage({super.key});
@@ -485,16 +486,7 @@ class _AccountPageState extends State<AccountPage> {
           _buildOptionTile(Icons.receipt_long_outlined, 'Your Orders', () {
             Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (_) => const Scaffold(
-                  body: Center(
-                    child: Text(
-                      'Orders Page - Coming Soon!',
-                      style: TextStyle(fontSize: 18),
-                    ),
-                  ),
-                ),
-              ),
+              MaterialPageRoute(builder: (_) => const OrderHistoryPage()),
             );
           }),
           _buildOptionTile(
