@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:local_mart/models/app_user.dart';
 
 class AccountPage extends StatefulWidget {
   const AccountPage({super.key});
@@ -33,23 +34,58 @@ class _AccountPageState extends State<AccountPage> {
         .doc(user.uid)
         .get();
     final data = doc.data();
-    setState(() {
-      username = (data?['username'] ?? '') as String;
-      mobile = (data?['mobile'] ?? '') as String;
-      address = data?['address'] as Map<String, dynamic>?;
-      _nameCtrl.text = username;
-      _mobileCtrl.text = mobile;
-      loading = false;
-    });
+    if (doc.exists && data != null) {
+      final appUser = AppUser.fromFirestore(doc);
+      setState(() {
+        username = appUser.username ?? '';
+        mobile = appUser.mobile ?? '';
+        address = appUser.address;
+        _nameCtrl.text = username;
+        _mobileCtrl.text = mobile;
+        loading = false;
+      });
+    } else {
+      setState(() {
+        loading = false;
+      });
+    }
   }
 
   Future<void> _saveProfile() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
-    await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
-      'username': _nameCtrl.text.trim(),
-      'mobile': _mobileCtrl.text.trim(),
-    });
+
+    final userRef = FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid);
+    final doc = await userRef.get();
+
+    if (doc.exists) {
+      final appUser = AppUser.fromFirestore(doc);
+      final updatedAppUser = AppUser(
+        uid: appUser.uid,
+        username: _nameCtrl.text.trim(),
+        email: appUser.email,
+        mobile: _mobileCtrl.text.trim(),
+        photoURL: appUser.photoURL,
+        provider: appUser.provider,
+        createdAt: appUser.createdAt,
+        lastLogin: appUser.lastLogin,
+        address: appUser.address,
+        categoryStats: appUser.categoryStats,
+        role: appUser.role,
+        retailerName: appUser.retailerName,
+        retailerAddress: appUser.retailerAddress,
+        wholesalerIds: appUser.wholesalerIds,
+        wholesalerName: appUser.wholesalerName,
+        wholesalerAddress: appUser.wholesalerAddress,
+        retailerIds: appUser.retailerIds,
+      );
+      await userRef.set(updatedAppUser.toFirestore());
+    } else {
+      // Handle case where user document doesn't exist (shouldn't happen if _ensureUserDoc is called on login)
+      debugPrint("User document not found for update.");
+    }
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(const SnackBar(content: Text('Profile updated')));

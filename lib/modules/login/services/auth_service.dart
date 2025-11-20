@@ -4,6 +4,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:local_mart/models/app_user.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -75,14 +76,18 @@ class AuthService {
     final snap = await ref.get();
 
     if (!snap.exists) {
-      await ref.set({
-        'username': user.displayName ?? '',
-        'email': user.email ?? '',
-        'mobile': '',
-        'photoURL': user.photoURL ?? '',
-        'provider': provider,
-        'createdAt': FieldValue.serverTimestamp(),
-      });
+      final newAppUser = AppUser(
+        uid: user.uid,
+        username: user.displayName ?? '',
+        email: user.email ?? '',
+        mobile: '',
+        photoURL: user.photoURL ?? '',
+        provider: provider,
+        createdAt: Timestamp.now(),
+        lastLogin: Timestamp.now(),
+        role: "Customer", // Default role
+      );
+      await ref.set(newAppUser.toFirestore());
     } else {
       await ref.update({'lastLogin': FieldValue.serverTimestamp()});
     }

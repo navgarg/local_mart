@@ -6,6 +6,7 @@ class AppScaffold extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onNavTap;
   final String? title;
+  final Widget? floatingActionButton;
 
   const AppScaffold({
     super.key,
@@ -13,6 +14,7 @@ class AppScaffold extends StatelessWidget {
     required this.currentIndex,
     required this.onNavTap,
     this.title,
+    this.floatingActionButton,
   });
 
   @override
@@ -35,6 +37,7 @@ class AppScaffold extends StatelessWidget {
         currentIndex: currentIndex,
         onTap: onNavTap,
       ),
+      floatingActionButton: floatingActionButton,
     );
   }
 }

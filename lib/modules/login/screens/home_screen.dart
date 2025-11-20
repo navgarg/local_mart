@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:local_mart/models/app_user.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -31,10 +32,11 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       final doc = await _firestore.collection('users').doc(user.uid).get();
       if (doc.exists) {
+        final appUser = AppUser.fromFirestore(doc);
         setState(() {
-          username = doc['username'] ?? '';
-          email = doc['email'] ?? '';
-          mobile = doc['mobile'] ?? '';
+          username = appUser.username ?? '';
+          email = appUser.email ?? '';
+          mobile = appUser.mobile ?? '';
         });
       } else {
         setState(() {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../../../models/app_user.dart';
 
 class RoleSelectionScreen extends StatelessWidget {
   const RoleSelectionScreen({super.key});
@@ -10,9 +11,35 @@ class RoleSelectionScreen extends StatelessWidget {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
 
-    await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
-      'role': role,
-    });
+    final userRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
+    final doc = await userRef.get();
+
+    if (doc.exists) {
+      final appUser = AppUser.fromFirestore(doc);
+      final updatedAppUser = AppUser(
+        uid: appUser.uid,
+        username: appUser.username,
+        email: appUser.email,
+        mobile: appUser.mobile,
+        photoURL: appUser.photoURL,
+        provider: appUser.provider,
+        createdAt: appUser.createdAt,
+        lastLogin: appUser.lastLogin,
+        address: appUser.address,
+        categoryStats: appUser.categoryStats,
+        role: role, // Update the role
+        retailerName: appUser.retailerName,
+        retailerAddress: appUser.retailerAddress,
+        wholesalerIds: appUser.wholesalerIds,
+        wholesalerName: appUser.wholesalerName,
+        wholesalerAddress: appUser.wholesalerAddress,
+        retailerIds: appUser.retailerIds,
+      );
+      await userRef.set(updatedAppUser.toFirestore());
+    } else {
+      debugPrint("User document not found for role update.");
+      return;
+    }
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(" Role set as $role")),
