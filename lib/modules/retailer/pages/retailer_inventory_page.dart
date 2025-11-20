@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:local_mart/models/retailer_product.dart';
 import 'package:local_mart/modules/retailer/services/retailer_product_service.dart';
+import 'package:local_mart/modules/retailer/pages/retailer_product_form_page.dart';
 
 class RetailerInventoryPage extends StatefulWidget {
   const RetailerInventoryPage({super.key});
@@ -36,7 +37,11 @@ class _RetailerInventoryPageState extends State<RetailerInventoryPage> {
           IconButton(
             icon: const Icon(Icons.add),
             onPressed: () {
-              // Navigate to add product page
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const RetailerProductFormPage(),
+                ),
+              );
             },
           ),
         ],
@@ -69,17 +74,24 @@ class _RetailerInventoryPageState extends State<RetailerInventoryPage> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.edit),
-                        onPressed: () {
-                          // Navigate to edit product page
-                        },
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete),
-                        onPressed: () {
-                          // Delete product
-                        },
-                      ),
+                                icon: const Icon(Icons.edit),
+                                onPressed: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (context) => RetailerProductFormPage(
+                                        retailerProduct: product,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.delete),
+                                onPressed: () async {
+                                  await Provider.of<RetailerProductService>(context, listen: false)
+                                      .deleteRetailerProduct(product.id);
+                                },
+                              ),
                     ],
                   ),
                 ),

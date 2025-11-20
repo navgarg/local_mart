@@ -14,6 +14,12 @@ import 'package:local_mart/modules/customer_order/providers/cart_provider.dart';
 import 'package:local_mart/modules/customer_order/providers/order_provider.dart';
 import 'package:local_mart/modules/retailer/pages/retailer_inventory_page.dart';
 import 'package:local_mart/modules/retailer/services/retailer_product_service.dart';
+import 'package:local_mart/modules/retailer/services/retailer_order_service.dart';
+
+import 'package:local_mart/modules/retailer/pages/retailer_customer_history_page.dart';
+import 'package:local_mart/modules/retailer_wholesaler_order/services/retailer_wholesaler_order_service.dart';
+import 'package:local_mart/modules/retailer_wholesaler_order/pages/retailer_wholesaler_order_list_page.dart';
+import 'package:local_mart/modules/retailer_wholesaler_order/pages/retailer_wholesaler_order_form_page.dart';
 import 'package:local_mart/modules/login/screens/address_details_screen.dart';
 import 'package:local_mart/modules/login/screens/age_question_screen.dart';
 import 'package:local_mart/modules/login/screens/buisness_details_screen.dart';
@@ -133,6 +139,8 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => CartProvider()),
         ChangeNotifierProvider(create: (_) => OrderProvider()),
         Provider(create: (_) => RetailerProductService()),
+            Provider(create: (_) => RetailerOrderService()),
+            Provider(create: (_) => RetailerWholesalerOrderService()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -163,6 +171,9 @@ class MyApp extends StatelessWidget {
 
           // ---------- RETAILER ROUTES ----------
           '/retailer-inventory': (context) => const RetailerInventoryPage(),
+                    '/retailer-customer-history': (context) => const RetailerCustomerHistoryPage(),
+          '/retailer-wholesaler-orders': (context) => const RetailerWholesalerOrderListPage(),
+          '/retailer-wholesaler-order-form': (context) => const RetailerWholesalerOrderFormPage(),
 
           // ---------- CUSTOMER ORDER ROUTES ----------
           // '/products': (_) => const ProductsPage(),
