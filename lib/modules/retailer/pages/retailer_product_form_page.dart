@@ -1,0 +1,132 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:local_mart/models/retailer_product.dart';
+import 'package:local_mart/modules/retailer/services/retailer_product_service.dart';
+
+class RetailerProductFormPage extends StatefulWidget {
+  final RetailerProduct? retailerProduct;
+
+  const RetailerProductFormPage({super.key, this.retailerProduct});
+
+  @override
+  State<RetailerProductFormPage> createState() => _RetailerProductFormPageState();
+}
+
+class _RetailerProductFormPageState extends State<RetailerProductFormPage> {
+  final _formKey = GlobalKey<FormState>();
+  late TextEditingController _productIdController;
+  late TextEditingController _priceController;
+  late TextEditingController _stockController;
+
+  @override
+  void initState() {
+    super.initState();
+    _productIdController = TextEditingController(text: widget.retailerProduct?.productId ?? '');
+    _priceController = TextEditingController(text: widget.retailerProduct?.price.toString() ?? '');
+    _stockController = TextEditingController(text: widget.retailerProduct?.stock.toString() ?? '');
+  }
+
+  @override
+  void dispose() {
+    _productIdController.dispose();
+    _priceController.dispose();
+    _stockController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _saveProduct() async {
+    if (_formKey.currentState!.validate()) {
+      final retailerProductService = Provider.of<RetailerProductService>(context, listen: false);
+      final String retailerId = FirebaseAuth.instance.currentUser!.uid;
+
+      if (widget.retailerProduct == null) {
+        // Add new product
+        final newProduct = RetailerProduct(
+          id: DateTime.now().millisecondsSinceEpoch.toString(), // Temporary ID
+          productId: _productIdController.text,
+          retailerId: retailerId,
+          price: int.parse(_priceController.text),
+          stock: int.parse(_stockController.text),
+          createdAt: Timestamp.fromDate(DateTime.now()),
+          updatedAt: Timestamp.fromDate(DateTime.now()),
+        );
+        await retailerProductService.addRetailerProduct(newProduct);
+      } else {
+        // Update existing product
+        final updatedProduct = widget.retailerProduct!.copyWith(
+          productId: _productIdController.text,
+          price: int.parse(_priceController.text),
+          stock: int.parse(_stockController.text),
+          updatedAt: Timestamp.fromDate(DateTime.now()),
+        );
+        await retailerProductService.updateRetailerProduct(updatedProduct);
+      }
+      if (!mounted) return;
+      Navigator.of(context).pop();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.retailerProduct == null ? 'Add Product' : 'Edit Product'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              TextFormField(
+                controller: _productIdController,
+                decoration: const InputDecoration(labelText: 'Product ID'),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a product ID';
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                controller: _priceController,
+                decoration: const InputDecoration(labelText: 'Price'),
+                keyboardType: TextInputType.number,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a price';
+                  }
+                  if (int.tryParse(value) == null) {
+                    return 'Please enter a valid number';
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                controller: _stockController,
+                decoration: const InputDecoration(labelText: 'Stock'),
+                keyboardType: TextInputType.number,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter stock quantity';
+                  }
+                  if (int.tryParse(value) == null) {
+                    return 'Please enter a valid number';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: _saveProduct,
+                child: Text(widget.retailerProduct == null ? 'Add Product' : 'Update Product'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

@@ -12,6 +12,8 @@ import 'package:local_mart/modules/customer_order/pages/pickup_tracking_page.dar
 // ---------- CUSTOMER ORDER MODULE (Friend's Code) ----------
 import 'package:local_mart/modules/customer_order/providers/cart_provider.dart';
 import 'package:local_mart/modules/customer_order/providers/order_provider.dart';
+import 'package:local_mart/modules/retailer/pages/retailer_inventory_page.dart';
+import 'package:local_mart/modules/retailer/services/retailer_product_service.dart';
 import 'package:local_mart/modules/login/screens/address_details_screen.dart';
 import 'package:local_mart/modules/login/screens/age_question_screen.dart';
 import 'package:local_mart/modules/login/screens/buisness_details_screen.dart';
@@ -130,6 +132,7 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => CartProvider()),
         ChangeNotifierProvider(create: (_) => OrderProvider()),
+        Provider(create: (_) => RetailerProductService()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -157,6 +160,9 @@ class MyApp extends StatelessWidget {
           '/map-location': (context) => const MapLocationPickerScreen(),
           '/address-details': (context) => const AddressDetailsScreen(),
           '/business-details': (context) => const BusinessDetailsScreen(),
+
+          // ---------- RETAILER ROUTES ----------
+          '/retailer-inventory': (context) => const RetailerInventoryPage(),
 
           // ---------- CUSTOMER ORDER ROUTES ----------
           // '/products': (_) => const ProductsPage(),
