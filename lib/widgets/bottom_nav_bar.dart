@@ -4,10 +4,13 @@ class BottomNavBar extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
 
+  final List<BottomNavigationBarItem> items;
+
   const BottomNavBar({
     super.key,
     required this.currentIndex,
     required this.onTap,
+    required this.items,
   });
 
   @override
@@ -19,12 +22,7 @@ class BottomNavBar extends StatelessWidget {
       unselectedItemColor: Colors.grey.shade700,
       currentIndex: currentIndex,
       onTap: onTap,
-      items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'Home'),
-        BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Account'),
-        BottomNavigationBarItem(icon: Icon(Icons.shopping_cart_outlined), label: 'Cart'),
-        BottomNavigationBarItem(icon: Icon(Icons.notifications_none), label: 'Alerts'),
-      ],
+      items: items,
     );
   }
 }

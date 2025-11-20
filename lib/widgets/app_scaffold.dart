@@ -8,6 +8,8 @@ class AppScaffold extends StatelessWidget {
   final String? title;
   final Widget? floatingActionButton;
 
+  final List<BottomNavigationBarItem> items;
+
   const AppScaffold({
     super.key,
     required this.body,
@@ -15,6 +17,7 @@ class AppScaffold extends StatelessWidget {
     required this.onNavTap,
     this.title,
     this.floatingActionButton,
+    required this.items,
   });
 
   @override
@@ -36,6 +39,7 @@ class AppScaffold extends StatelessWidget {
       bottomNavigationBar: BottomNavBar(
         currentIndex: currentIndex,
         onTap: onNavTap,
+        items: items,
       ),
       floatingActionButton: floatingActionButton,
     );

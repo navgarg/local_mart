@@ -1,4 +1,5 @@
 // lib/main.dart
+import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 // Firebase Auth & Firestore (if you need them later)
 import 'package:firebase_auth/firebase_auth.dart';

@@ -8,6 +8,7 @@ import 'customer_order/pages/alerts_page.dart';
 import '../widgets/app_scaffold.dart';
 
 class MainScreen extends StatefulWidget {
+  static const String routeName = '/main-screen';
   final int initialIndex;
   const MainScreen({super.key, this.initialIndex = 0});
 
@@ -62,6 +63,12 @@ class _MainScreenState extends State<MainScreen> {
       body: _pages[_currentIndex],
       currentIndex: _currentIndex,
       onNavTap: _onNavTap,
+      items: const [
+        BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'Home'),
+        BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Account'),
+        BottomNavigationBarItem(icon: Icon(Icons.shopping_cart_outlined), label: 'Cart'),
+        BottomNavigationBarItem(icon: Icon(Icons.notifications_none), label: 'Alerts'),
+      ],
     );
   }
 }

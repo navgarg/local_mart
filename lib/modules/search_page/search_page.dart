@@ -532,148 +532,100 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
+  Widget _buildSearchBody() {
+    return Column(
+      children: [
+        // AppBar replica — since AppScaffold provides its own structure
+        Material(
+          elevation: 1,
+          color: Colors.white,
+          child: SafeArea(
+            bottom: false,
+            child: Padding(
+              padding: const EdgeInsets.only(left: 8, right: 4),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _searchController,
+                      decoration: const InputDecoration(
+                        hintText: "Search for products...",
+                        border: InputBorder.none,
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(right: 2.0),
+                    child: IconButton(
+                      icon: Icon(
+                        Icons.filter_list,
+                        color: filtersActive
+                            ? Theme.of(context).primaryColor
+                            : Colors.black54,
+                        shadows: filtersActive
+                            ? [
+                                Shadow(
+                                  color: Theme.of(
+                                    context,
+                                  ).primaryColor.withOpacity(0.4),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                )
+                              ]
+                            : null,
+                      ),
+                      onPressed: _openFilterDialog,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.search, color: Colors.black54),
+                    onPressed: () => searchProducts(_searchController.text),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        Expanded(
+          child: isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : searchResults.isEmpty
+                  ? Center(
+                      child: Text(
+                        _searchController.text.isEmpty
+                            ? 'Start typing to search...'
+                            : 'No results found.',
+                        style: const TextStyle(color: Colors.black54),
+                      ),
+                    )
+                  : ListView.builder(
+                      itemCount: searchResults.length,
+                      itemBuilder: (context, index) {
+                        final productData = searchResults[index];
+                        return _buildResultTile(productData);
+                      },
+                    ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
       title: 'Search',
       currentIndex: 0, // highlight "Home"
-      onNavTap: (idx) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => MainScreen(initialIndex: idx)),
-        );
+      onNavTap: (index) {
+        // For now, we'll just navigate to the corresponding main screen tab
+        Navigator.pushReplacementNamed(context, MainScreen.routeName, arguments: index);
       },
-      body: Column(
-        children: [
-          // AppBar replica — since AppScaffold provides its own structure
-          Material(
-            elevation: 1,
-            color: Colors.white,
-            child: SafeArea(
-              bottom: false,
-              child: Padding(
-                padding: const EdgeInsets.only(left: 8, right: 4),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _searchController,
-                        decoration: const InputDecoration(
-                          hintText: "Search for products...",
-                          border: InputBorder.none,
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(right: 2.0),
-                      child: IconButton(
-                        icon: Icon(
-                          Icons.filter_list,
-                          color: filtersActive
-                              ? Theme.of(context).primaryColor
-                              : Colors.black54,
-                          shadows: filtersActive
-                              ? [
-                                  Shadow(
-                                    color: Theme.of(
-                                      context,
-                                    ).primaryColor.withValues(alpha: 0.8),
-                                    blurRadius: 8,
-                                  ),
-                                ]
-                              : null,
-                        ),
-                        onPressed: _openFilterDialog,
-                        tooltip: 'Filters',
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-
-          // Active filters chip
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 200),
-            child: filtersActive
-                ? Padding(
-                    key: const ValueKey('filters_chip'),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: GestureDetector(
-                        onTap: _openFilterDialog,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Color(0xFF00A693), Color(0xFF7FECEC)],
-                              begin: Alignment.centerLeft,
-                              end: Alignment.centerRight,
-                            ),
-                            borderRadius: BorderRadius.circular(20),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Theme.of(
-                                  context,
-                                ).primaryColor.withValues(alpha: 0.25),
-                                blurRadius: 6,
-                                offset: const Offset(0, 3),
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(
-                                Icons.filter_alt,
-                                color: Colors.white,
-                                size: 18,
-                              ),
-                              const SizedBox(width: 6),
-                              const Text(
-                                'Filters active',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              const Icon(
-                                Icons.arrow_drop_down,
-                                color: Colors.white,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  )
-                : const SizedBox.shrink(key: ValueKey('no_filters')),
-          ),
-
-          // content
-          Expanded(
-            child: isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : searchResults.isEmpty
-                ? const Center(child: Text("No results found"))
-                : ListView.builder(
-                    padding: const EdgeInsets.only(bottom: 12, top: 6),
-                    itemCount: searchResults.length,
-                    itemBuilder: (context, index) =>
-                        _buildResultTile(searchResults[index]),
-                  ),
-          ),
-        ],
-      ),
+      items: const [
+        BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'Home'),
+        BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Account'),
+        BottomNavigationBarItem(icon: Icon(Icons.shopping_cart_outlined), label: 'Cart'),
+        BottomNavigationBarItem(icon: Icon(Icons.notifications_none), label: 'Alerts'),
+      ],
+      body: _buildSearchBody(),
     );
   }
 }

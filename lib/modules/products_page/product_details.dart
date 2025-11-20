@@ -368,6 +368,12 @@ class _ProductDetailsPageState extends State<ProductDetailsPage>
         context,
         MaterialPageRoute(builder: (_) => MainScreen(initialIndex: idx)),
       ),
+      items: const [
+        BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'Home'),
+        BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Account'),
+        BottomNavigationBarItem(icon: Icon(Icons.shopping_cart_outlined), label: 'Cart'),
+        BottomNavigationBarItem(icon: Icon(Icons.notifications_none), label: 'Alerts'),
+      ],
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
