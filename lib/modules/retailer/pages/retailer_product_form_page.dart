@@ -72,6 +72,7 @@ class _RetailerProductFormPageState extends State<RetailerProductFormPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: true,
         title: Text(widget.retailerProduct == null ? 'Add Product' : 'Edit Product'),
       ),
       body: Padding(

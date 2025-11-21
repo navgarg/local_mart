@@ -27,13 +27,16 @@ class _RetailerWholesalerOrderListPageState
   Widget build(BuildContext context) {
     if (_retailerId == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('My Wholesaler Orders')),
+        appBar: AppBar(
+          automaticallyImplyLeading: true,
+          title: const Text('My Wholesaler Orders')),
         body: const Center(child: Text('Please log in as a retailer.')),
       );
     }
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: true,
         title: const Text('My Wholesaler Orders'),
         actions: [
           IconButton(

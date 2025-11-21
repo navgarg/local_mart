@@ -10,7 +10,8 @@ class WholesalerProductFormPage extends StatefulWidget {
   const WholesalerProductFormPage({super.key, this.wholesalerProduct});
 
   @override
-  State<WholesalerProductFormPage> createState() => _WholesalerProductFormPageState();
+  State<WholesalerProductFormPage> createState() =>
+      _WholesalerProductFormPageState();
 }
 
 class _WholesalerProductFormPageState extends State<WholesalerProductFormPage> {
@@ -24,11 +25,21 @@ class _WholesalerProductFormPageState extends State<WholesalerProductFormPage> {
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: widget.wholesalerProduct?.name ?? '');
-    _descriptionController = TextEditingController(text: widget.wholesalerProduct?.description ?? '');
-    _imageController = TextEditingController(text: widget.wholesalerProduct?.image ?? '');
-    _priceController = TextEditingController(text: widget.wholesalerProduct?.price.toString() ?? '');
-    _stockController = TextEditingController(text: widget.wholesalerProduct?.stock.toString() ?? '');
+    _nameController = TextEditingController(
+      text: widget.wholesalerProduct?.name ?? '',
+    );
+    _descriptionController = TextEditingController(
+      text: widget.wholesalerProduct?.description ?? '',
+    );
+    _imageController = TextEditingController(
+      text: widget.wholesalerProduct?.image ?? '',
+    );
+    _priceController = TextEditingController(
+      text: widget.wholesalerProduct?.price.toString() ?? '',
+    );
+    _stockController = TextEditingController(
+      text: widget.wholesalerProduct?.stock.toString() ?? '',
+    );
   }
 
   @override
@@ -43,7 +54,10 @@ class _WholesalerProductFormPageState extends State<WholesalerProductFormPage> {
 
   Future<void> _saveProduct() async {
     if (_formKey.currentState!.validate()) {
-      final wholesalerProductService = Provider.of<WholesalerProductService>(context, listen: false);
+      final wholesalerProductService = Provider.of<WholesalerProductService>(
+        context,
+        listen: false,
+      );
       final String wholesalerId = FirebaseAuth.instance.currentUser!.uid;
 
       if (widget.wholesalerProduct == null) {
@@ -80,7 +94,9 @@ class _WholesalerProductFormPageState extends State<WholesalerProductFormPage> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: true,
-        title: Text(widget.wholesalerProduct == null ? 'Add Product' : 'Edit Product'),
+        title: Text(
+          widget.wholesalerProduct == null ? 'Add Product' : 'Edit Product',
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -98,6 +114,7 @@ class _WholesalerProductFormPageState extends State<WholesalerProductFormPage> {
                   return null;
                 },
               ),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _descriptionController,
                 decoration: const InputDecoration(labelText: 'Description'),
@@ -109,10 +126,14 @@ class _WholesalerProductFormPageState extends State<WholesalerProductFormPage> {
                   return null;
                 },
               ),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _imageController,
-                decoration: const InputDecoration(labelText: 'Image URL (optional)'),
+                decoration: const InputDecoration(
+                  labelText: 'Image URL (optional)',
+                ),
               ),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _priceController,
                 decoration: const InputDecoration(labelText: 'Price'),
@@ -127,6 +148,8 @@ class _WholesalerProductFormPageState extends State<WholesalerProductFormPage> {
                   return null;
                 },
               ),
+
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _stockController,
                 decoration: const InputDecoration(labelText: 'Stock'),
@@ -144,7 +167,11 @@ class _WholesalerProductFormPageState extends State<WholesalerProductFormPage> {
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _saveProduct,
-                child: Text(widget.wholesalerProduct == null ? 'Add Product' : 'Update Product'),
+                child: Text(
+                  widget.wholesalerProduct == null
+                      ? 'Add Product'
+                      : 'Update Product',
+                ),
               ),
             ],
           ),

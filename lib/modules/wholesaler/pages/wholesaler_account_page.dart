@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:local_mart/models/app_user.dart';
-import 'package:local_mart/modules/wholesaler/pages/wholesaler_order_history_page.dart';
+
 
 class WholesalerAccountPage extends StatefulWidget {
   const WholesalerAccountPage({super.key});
@@ -90,6 +90,7 @@ class _WholesalerAccountPageState extends State<WholesalerAccountPage> {
     } else {
       debugPrint("User document not found for update.");
     }
+    if (!mounted) return;
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(const SnackBar(content: Text('Profile updated')));
@@ -206,15 +207,18 @@ class _WholesalerAccountPageState extends State<WholesalerAccountPage> {
                   width: double.infinity,
                   child: ElevatedButton.icon(
                     onPressed: () {
+                      final currentContext = context;
                       Navigator.pop(ctx);
                       Future.microtask(() {
-                        if (context.mounted) {
+                        if (currentContext.mounted) {
                           Navigator.pushNamed(
-                            context,
+                            currentContext,
                             '/map-picker',
                             arguments: {'role': 'Wholesaler'},
                           ).then((_) {
-                            _loadProfile();
+                            if (currentContext.mounted) {
+                              _loadProfile();
+                            }
                           });
                         }
                       });
@@ -511,12 +515,7 @@ class _WholesalerAccountPageState extends State<WholesalerAccountPage> {
             'Your Address',
             _showAddressSheet,
           ),
-          _buildOptionTile(Icons.receipt_long_outlined, 'Your Orders', () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const WholesalerOrderHistoryPage()),
-            );
-          }),
+
           _buildOptionTile(
             Icons.settings_outlined,
             'App Settings',

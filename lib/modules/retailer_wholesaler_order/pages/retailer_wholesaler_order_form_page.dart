@@ -46,7 +46,7 @@ class _RetailerWholesalerOrderFormPageState
         return;
       }
 
-      final totalAmount = _items.fold(0.0, (sum, item) => sum + (item.price * item.quantity));
+      final totalAmount = _items.fold(0.0, (currentSum, item) => currentSum + (item.price * item.quantity));
 
       final newOrder = RetailerWholesalerOrder(
         id: widget.order?.id ?? const Uuid().v4(),
@@ -68,6 +68,7 @@ class _RetailerWholesalerOrderFormPageState
         await service.updateRetailerWholesalerOrder(newOrder);
       }
 
+      if (!mounted) return;
       Navigator.of(context).pop();
     }
   }
@@ -76,6 +77,7 @@ class _RetailerWholesalerOrderFormPageState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: true,
         title: Text(widget.order == null ? 'New Wholesaler Order' : 'Edit Wholesaler Order'),
       ),
       body: Padding(
@@ -146,7 +148,7 @@ class _RetailerWholesalerOrderFormPageState
                     ),
                   ),
                 );
-              }).toList(),
+              }),
               ElevatedButton(
                 onPressed: () {
                   // TODO: Navigate to a product selection page to add items
