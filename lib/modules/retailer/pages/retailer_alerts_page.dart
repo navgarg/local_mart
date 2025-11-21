@@ -13,14 +13,12 @@ class RetailerAlertsPage extends StatelessWidget {
     final String? userId = FirebaseAuth.instance.currentUser?.uid;
 
     if (userId == null) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('My Alerts')),
-        body: const Center(child: Text('Please log in to view your alerts.')),
+      return const Scaffold(
+        body: Center(child: Text('Please log in to view your alerts.')),
       );
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('My Alerts')),
       body: StreamBuilder(
         stream: AlertService().getAlertsForUser(userId),
         builder: (context, snapshot) {

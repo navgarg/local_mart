@@ -24,15 +24,19 @@ class _RetailerCustomerHistoryPageState extends State<RetailerCustomerHistoryPag
   Widget build(BuildContext context) {
     if (_retailerId == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Customer Purchase History')),
+        appBar: AppBar(
+    automaticallyImplyLeading: true,
+    title: const Text('Customer Purchase History'),
+  ),
         body: const Center(child: Text('Please log in as a retailer.')),
       );
     }
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Customer Purchase History'),
-      ),
+    automaticallyImplyLeading: true,
+    title: const Text('Customer Purchase History'),
+  ),
       body: StreamBuilder<List<local_mart_order.Order>>(
         stream: Provider.of<RetailerOrderService>(context)
             .getRetailerOrders(_retailerId!),

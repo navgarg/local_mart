@@ -25,13 +25,16 @@ class _RetailerInventoryPageState extends State<RetailerInventoryPage> {
   Widget build(BuildContext context) {
     if (_retailerId == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Retailer Inventory')),
-        body: const Center(child: Text('Please log in as a retailer.')),
+        appBar: AppBar(
+          automaticallyImplyLeading: true,
+          title: const Text('Retailer Inventory'),
+        ),        body: const Center(child: Text('Please log in as a retailer.')),
       );
     }
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: true,
         title: const Text('Retailer Inventory'),
         actions: [
           IconButton(

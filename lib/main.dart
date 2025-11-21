@@ -11,7 +11,7 @@ import 'package:local_mart/modules/customer_order/pages/checkout_page.dart';
 import 'package:local_mart/modules/customer_order/pages/delivery_tracking_page.dart';
 import 'package:local_mart/modules/customer_order/pages/pickup_tracking_page.dart';
 import 'package:local_mart/modules/retailer/pages/retailer_orders_page.dart';
-import 'package:local_mart/modules/wholesaler/pages/wholesaler_orders_page.dart';
+
 import 'package:local_mart/modules/retailer/pages/retailer_alerts_page.dart';
 import 'package:local_mart/modules/wholesaler/pages/wholesaler_alerts_page.dart';
 import 'package:local_mart/modules/wholesaler/pages/wholesaler_orders_page.dart';
@@ -20,6 +20,7 @@ import 'package:local_mart/modules/customer_order/providers/order_provider.dart'
 import 'package:local_mart/modules/retailer/pages/retailer_inventory_page.dart';
 import 'package:local_mart/modules/retailer/services/retailer_product_service.dart';
 import 'package:local_mart/modules/retailer/services/retailer_order_service.dart';
+import 'package:local_mart/modules/wholesaler/services/wholesaler_product_service.dart';
 
 import 'package:local_mart/modules/retailer/pages/retailer_customer_history_page.dart';
 import 'package:local_mart/modules/retailer_wholesaler_order/services/retailer_wholesaler_order_service.dart';
@@ -28,6 +29,7 @@ import 'package:local_mart/modules/retailer_wholesaler_order/pages/retailer_whol
 import 'package:local_mart/providers/user_provider.dart';
 import 'package:local_mart/modules/wholesaler/services/wholesaler_retailer_history_service.dart';
 import 'package:local_mart/modules/wholesaler/pages/wholesaler_retailer_history_list_page.dart';
+import 'package:local_mart/modules/wholesaler/pages/wholesaler_inventory_page.dart';
 import 'package:local_mart/modules/login/screens/address_details_screen.dart';
 import 'package:local_mart/modules/login/screens/age_question_screen.dart';
 import 'package:local_mart/modules/login/screens/buisness_details_screen.dart';
@@ -154,6 +156,7 @@ class MyApp extends StatelessWidget {
         Provider(create: (_) => RetailerOrderService()),
         Provider(create: (_) => RetailerWholesalerOrderService()),
         Provider(create: (_) => WholesalerRetailerHistoryService()),
+            Provider(create: (_) => WholesalerProductService()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -193,6 +196,7 @@ class MyApp extends StatelessWidget {
               const RetailerWholesalerOrderFormPage(),
           '/wholesaler-retailer-history': (context) =>
               const WholesalerRetailerHistoryListPage(),
+          '/wholesaler-inventory': (context) => const WholesalerInventoryPage(),
                     '/wholesaler-dashboard': (context) => const WholesalerDashboardPage(),
           WholesalerOrdersPage.routeName: (context) => const WholesalerOrdersPage(),
           WholesalerAlertsPage.routeName: (context) => const WholesalerAlertsPage(),

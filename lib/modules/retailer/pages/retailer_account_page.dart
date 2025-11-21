@@ -119,13 +119,12 @@ class _RetailerAccountPageState extends State<RetailerAccountPage> {
             onPressed: () {
               Navigator.pop(ctx);
           feedbackCtrl.dispose();
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Feedback submitted successfully, thank you!'),
-              ),
-            );
-          }
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Feedback submitted successfully, thank you!'),
+            ),
+          );
             },
             child: const Text('Submit'),
           ),
@@ -210,15 +209,14 @@ class _RetailerAccountPageState extends State<RetailerAccountPage> {
                     onPressed: () {
                       Navigator.pop(ctx);
                       Future.microtask(() {
-                        if (context.mounted) {
-                          Navigator.pushNamed(
+                        if (!context.mounted) return;
+                        Navigator.pushNamed(
                             context,
                             '/map-picker',
                             arguments: {'role': 'Retailer'},
                           ).then((_) {
                             _loadProfile();
                           });
-                        }
                       });
                     },
                     icon: const Icon(
@@ -528,10 +526,38 @@ class _RetailerAccountPageState extends State<RetailerAccountPage> {
             'Feedback',
             _showFeedbackDialog,
           ),
-          _buildOptionTile(
-            Icons.notifications_none,
+
+          _buildOptionTile(Icons.notifications_none,
             'Alerts',
             () => Navigator.pushNamed(context, RetailerAlertsPage.routeName),
+          ),
+
+          const Spacer(),
+
+          Center(
+            child: ElevatedButton.icon(
+              onPressed: _logout,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.redAccent,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 30,
+                  vertical: 12,
+                ),
+                minimumSize: const Size(double.infinity, 0),
+              ),
+              icon: const Icon(Icons.logout, color: Colors.white),
+              label: const Text(
+                'Logout',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+            ),
           ),
           _buildOptionTile(
             Icons.support_agent_outlined,
