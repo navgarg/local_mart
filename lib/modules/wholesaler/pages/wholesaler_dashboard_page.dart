@@ -5,6 +5,7 @@ import 'package:local_mart/widgets/bottom_nav_bar.dart';
 import 'package:local_mart/modules/wholesaler/pages/wholesaler_home_page.dart';
 import 'package:local_mart/modules/wholesaler/pages/wholesaler_account_page.dart';
 import 'package:local_mart/modules/wholesaler/pages/wholesaler_alerts_page.dart';
+import 'package:local_mart/modules/wholesaler/pages/wholesaler_inventory_page.dart';
 
 class WholesalerDashboardPage extends StatefulWidget {
   static const String routeName = '/wholesaler-dashboard';
@@ -22,6 +23,7 @@ class _WholesalerDashboardPageState extends State<WholesalerDashboardPage> {
     'Orders',
     'Account',
     'Alerts',
+    'Inventory',
   ];
 
   final List<Widget> _pages = [
@@ -29,6 +31,7 @@ class _WholesalerDashboardPageState extends State<WholesalerDashboardPage> {
     const WholesalerOrdersPage(),
     const WholesalerAccountPage(),
     const WholesalerAlertsPage(),
+    const WholesalerInventoryPage(),
   ];
 
   void _onNavTap(int index) {
@@ -41,6 +44,7 @@ class _WholesalerDashboardPageState extends State<WholesalerDashboardPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: true,
         title: Text(_titles[_currentIndex]),
       ),
       body: _pages[_currentIndex],
@@ -52,6 +56,7 @@ class _WholesalerDashboardPageState extends State<WholesalerDashboardPage> {
           BottomNavigationBarItem(icon: Icon(Icons.history), label: 'Orders'),
           BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Account'),
           BottomNavigationBarItem(icon: Icon(Icons.notifications_none), label: 'Alerts'),
+          BottomNavigationBarItem(icon: Icon(Icons.inventory), label: 'Inventory'),
         ],
       ),
     );

@@ -13,16 +13,12 @@ class WholesalerOrdersPage extends StatelessWidget {
     final String? wholesalerId = FirebaseAuth.instance.currentUser?.uid;
 
     if (wholesalerId == null) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Customer Orders')),
-        body: const Center(child: Text('Please log in to view customer orders.')),
+      return const Scaffold(
+        body: Center(child: Text('Please log in to view customer orders.')),
       );
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Customer Orders'),
-      ),
       body: StreamBuilder(
         stream: RetailerWholesalerOrderService().getWholesalerOrders(wholesalerId),
         builder: (context, snapshot) {
