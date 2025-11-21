@@ -152,15 +152,22 @@ class _CheckoutPageState extends State<CheckoutPage> {
   void _handlePaymentSuccess(PaymentSuccessResponse r) =>
       _finalizeOrder(paymentId: r.paymentId);
 
-  void _handlePaymentError(PaymentFailureResponse r) => ScaffoldMessenger.of(
-    context,
-  ).showSnackBar(SnackBar(content: Text('Payment failed: ${r.message ?? ""}')));
+  void _handlePaymentError(PaymentFailureResponse r) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('Payment failed: ${r.message ?? ""}')));
+  }
 
-  void _handleExternalWallet(ExternalWalletResponse r) => ScaffoldMessenger.of(
-    context,
-  ).showSnackBar(SnackBar(content: Text('External Wallet: ${r.walletName}')));
+  void _handleExternalWallet(ExternalWalletResponse r) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text('External Wallet: ${r.walletName}')));
+  }
 
   Future<void> _finalizeOrder({String? paymentId}) async {
+    final messenger = ScaffoldMessenger.of(context);
     final cart = Provider.of<CartProvider>(context, listen: false);
     final orderProvider = Provider.of<OrderProvider>(context, listen: false);
     final user = FirebaseAuth.instance.currentUser;
@@ -180,6 +187,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
         razorpayPaymentId: paymentId,
       );
 
+      if (!mounted) return;
       Navigator.pushReplacementNamed(
         context,
         _receivingMethod == 'delivery'
@@ -188,9 +196,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
         arguments: orderId,
       );
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Order failed: $e')));
+      if (!mounted) return;
+      messenger.showSnackBar(SnackBar(content: Text('Order failed: $e')));
     }
   }
 
@@ -198,6 +205,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
     if (_isPlacingOrder) return;
     setState(() => _isPlacingOrder = true);
 
+    final messenger = ScaffoldMessenger.of(context);
     final cart = Provider.of<CartProvider>(context, listen: false);
 
     try {
@@ -224,9 +232,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
         await _finalizeOrder();
       }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Order failed $e')));
+      if (!mounted) return;
+      messenger.showSnackBar(SnackBar(content: Text('Order failed $e')));
     }
 
     setState(() => _isPlacingOrder = false);
@@ -259,9 +266,10 @@ class _CheckoutPageState extends State<CheckoutPage> {
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: true,
         title: const Text(
           'Checkout',
-          style: const TextStyle(
+          style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.w600,
           ),

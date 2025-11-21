@@ -32,10 +32,12 @@ class _DeliveryTrackingPageState extends State<DeliveryTrackingPage> {
     _userId = user?.uid;
     if (_userId != null) {
       Future.microtask(() {
+        if (!mounted) return;
         Provider.of<OrderProvider>(
           context,
           listen: false,
         ).listenToOrder(_userId!, widget.orderId); // ✅ Correct order
+        if (!mounted) return;
         Provider.of<OrderProvider>(
           context,
           listen: false,
@@ -56,9 +58,10 @@ class _DeliveryTrackingPageState extends State<DeliveryTrackingPage> {
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: true,
         title: const Text(
           'Delivery Tracking',
-          style: const TextStyle(
+          style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.w600,
           ),
@@ -172,6 +175,7 @@ class _DeliveryTrackingPageState extends State<DeliveryTrackingPage> {
                     _CancelButton(
                       isCancelling: _isCancelling,
                       onCancel: () async {
+                        final messenger = ScaffoldMessenger.of(context);
                         final confirm = await showDialog<bool>(
                           context: context,
                           builder: (ctx) => AlertDialog(
@@ -196,11 +200,13 @@ class _DeliveryTrackingPageState extends State<DeliveryTrackingPage> {
                           setState(() => _isCancelling = true);
                           try {
                             await provider.cancelOrder(_userId!, order.id);
-                            ScaffoldMessenger.of(context).showSnackBar(
+                            if (!mounted) return;
+                            messenger.showSnackBar(
                               const SnackBar(content: Text('Order cancelled')),
                             );
                           } catch (e) {
-                            ScaffoldMessenger.of(context).showSnackBar(
+                            if (!mounted) return;
+                            messenger.showSnackBar(
                               SnackBar(content: Text(e.toString())),
                             );
                           } finally {

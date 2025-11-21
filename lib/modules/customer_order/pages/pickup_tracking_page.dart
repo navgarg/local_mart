@@ -69,9 +69,10 @@ class _PickupTrackingPageState extends State<PickupTrackingPage> {
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: true,
         title: const Text(
           "Order Tracking",
-          style: const TextStyle(
+          style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.w600,
           ),
@@ -82,8 +83,9 @@ class _PickupTrackingPageState extends State<PickupTrackingPage> {
 
       body: RefreshIndicator(
         onRefresh: () async {
-          if (_userId != null)
+          if (_userId != null) {
             await provider.refreshOrder(_userId!, widget.orderId);
+          }
         },
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -276,7 +278,9 @@ class _PickupTrackingPageState extends State<PickupTrackingPage> {
                               _userId!,
                             );
                             setState(() => _isCancelling = false);
-                            ScaffoldMessenger.of(context).showSnackBar(
+                            if (!mounted) return;
+                            final messenger = ScaffoldMessenger.of(context);
+                            messenger.showSnackBar(
                               const SnackBar(content: Text("Pickup Cancelled")),
                             );
                           },
