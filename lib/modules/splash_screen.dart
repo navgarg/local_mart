@@ -19,7 +19,9 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    _checkUserAndNavigate();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkUserAndNavigate();
+    });
   }
 
   Future<void> _checkUserAndNavigate() async {
