@@ -9,6 +9,7 @@ import '../widgets/social_button.dart';
 import '../widgets/auth_snackbar.dart';
 
 class LoginScreen extends StatefulWidget {
+  static const String routeName = '/login';
   const LoginScreen({super.key});
 
   @override

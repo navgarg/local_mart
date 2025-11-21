@@ -1,5 +1,5 @@
 // lib/main.dart
-import 'package:firebase_app_check/firebase_app_check.dart';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 // Firebase Auth & Firestore (if you need them later)
 import 'package:firebase_auth/firebase_auth.dart';
@@ -47,6 +47,7 @@ import 'firebase_options.dart';
 import 'package:local_mart/modules/retailer/pages/retailer_dashboard_page.dart';
 import 'package:local_mart/modules/wholesaler/pages/wholesaler_dashboard_page.dart';
 import 'package:local_mart/modules/main_screen.dart';
+import 'package:local_mart/modules/splash_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -158,10 +159,11 @@ class MyApp extends StatelessWidget {
         theme: themeData,
 
         // App starts at your login screen
-        initialRoute: '/login',
+        initialRoute: SplashScreen.routeName,
 
         routes: {
           // ---------- LOGIN SYSTEM ROUTES ----------
+          SplashScreen.routeName: (context) => const SplashScreen(),
           '/login': (context) => const LoginScreen(),
           '/signup': (context) => const SignUpScreen(),
           '/verify': (context) => const OtpVerificationScreen(),

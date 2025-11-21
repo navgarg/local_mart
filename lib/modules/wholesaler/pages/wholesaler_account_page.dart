@@ -37,18 +37,22 @@ class _WholesalerAccountPageState extends State<WholesalerAccountPage> {
     final data = doc.data();
     if (doc.exists && data != null) {
       final appUser = AppUser.fromFirestore(doc);
-      setState(() {
-        username = appUser.username ?? '';
-        mobile = appUser.mobile ?? '';
-        address = appUser.address;
-        _nameCtrl.text = username;
-        _mobileCtrl.text = mobile;
-        loading = false;
-      });
+      if (mounted) {
+        setState(() {
+          username = appUser.username ?? '';
+          mobile = appUser.mobile ?? '';
+          address = appUser.address;
+          _nameCtrl.text = username;
+          _mobileCtrl.text = mobile;
+          loading = false;
+        });
+      }
     } else {
-      setState(() {
-        loading = false;
-      });
+      if (mounted) {
+        setState(() {
+          loading = false;
+        });
+      }
     }
   }
 
@@ -89,20 +93,22 @@ class _WholesalerAccountPageState extends State<WholesalerAccountPage> {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(const SnackBar(content: Text('Profile updated')));
-    _loadProfile();
+    if (mounted) {
+      _loadProfile();
+    }
   }
 
   void _showFeedbackDialog() {
-    final _feedbackCtrl = TextEditingController();
+    final feedbackCtrl = TextEditingController();
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Feedback'),
         content: TextField(
-          controller: _feedbackCtrl,
-          maxLines: 4,
-          decoration: const InputDecoration(hintText: 'Write feedback...'),
-        ),
+            controller: feedbackCtrl,
+            maxLines: 4,
+            decoration: const InputDecoration(hintText: 'Write feedback...'),
+          ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -111,11 +117,14 @@ class _WholesalerAccountPageState extends State<WholesalerAccountPage> {
           ElevatedButton(
             onPressed: () {
               Navigator.pop(ctx);
-              ScaffoldMessenger.of(context).showSnackBar(
+          feedbackCtrl.dispose();
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text('Feedback submitted successfully, thank you!'),
-                ),
-              );
+              ),
+            );
+          }
             },
             child: const Text('Submit'),
           ),
@@ -152,6 +161,7 @@ class _WholesalerAccountPageState extends State<WholesalerAccountPage> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (ctx) {
+        if (!mounted) return Container();
         final addr = address != null
             ? [
                     address?['flatNo'],
@@ -244,6 +254,7 @@ class _WholesalerAccountPageState extends State<WholesalerAccountPage> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (ctx) {
+        if (!mounted) return Container();
         return StatefulBuilder(
           builder: (ctx, setModalState) => Padding(
             padding: const EdgeInsets.all(20),
@@ -280,10 +291,12 @@ class _WholesalerAccountPageState extends State<WholesalerAccountPage> {
 
   void _logout() async {
     await FirebaseAuth.instance.signOut();
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Logged out')));
-    Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+    if (mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Logged out')));
+      Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+    }
   }
 
   Widget _buildOptionTile(IconData icon, String title, VoidCallback onTap) {
@@ -298,6 +311,13 @@ class _WholesalerAccountPageState extends State<WholesalerAccountPage> {
         Divider(color: Colors.grey[200], height: 1),
       ],
     );
+  }
+
+  @override
+  void dispose() {
+    _nameCtrl.dispose();
+    _mobileCtrl.dispose();
+    super.dispose();
   }
 
   @override
@@ -351,7 +371,7 @@ class _WholesalerAccountPageState extends State<WholesalerAccountPage> {
                                       color: Colors.white,
                                       boxShadow: [
                                         BoxShadow(
-                                          color: Colors.black.withOpacity(0.1),
+                                          color: Colors.black.withValues(alpha:0.1),
                                           blurRadius: 10,
                                           offset: const Offset(0, 4),
                                         ),

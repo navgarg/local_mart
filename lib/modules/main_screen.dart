@@ -8,7 +8,7 @@ import 'customer_order/pages/alerts_page.dart';
 import '../widgets/app_scaffold.dart';
 
 class MainScreen extends StatefulWidget {
-  static const String routeName = '/main-screen';
+  static const String routeName = '/home';
   final int initialIndex;
   const MainScreen({super.key, this.initialIndex = 0});
 

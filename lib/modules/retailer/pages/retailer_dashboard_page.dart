@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:local_mart/widgets/bottom_nav_bar.dart';
-import 'package:local_mart/modules/retailer/pages/retailer_inventory_page.dart';
 import 'package:local_mart/modules/retailer/pages/retailer_home_page.dart';
-import 'package:local_mart/modules/retailer/pages/retailer_orders_page.dart';
+import 'package:local_mart/modules/retailer/pages/retailer_order_history_page.dart';
 import 'package:local_mart/modules/retailer/pages/retailer_account_page.dart';
+import 'package:local_mart/modules/retailer/pages/retailer_alerts_page.dart';
+import 'package:local_mart/widgets/bottom_nav_bar.dart';
 
 class RetailerDashboardPage extends StatefulWidget {
+  static const String routeName = '/retailer-dashboard';
   const RetailerDashboardPage({super.key});
 
   @override
@@ -15,11 +16,18 @@ class RetailerDashboardPage extends StatefulWidget {
 class _RetailerDashboardPageState extends State<RetailerDashboardPage> {
   int _currentIndex = 0;
 
+  final List<String> _titles = const [
+    'Retailer Home',
+    'Orders',
+    'Account',
+    'Alerts',
+  ];
+
   final List<Widget> _pages = [
     const RetailerHomePage(),
-    const RetailerInventoryPage(),
-    const RetailerOrdersPage(),
+    const RetailerOrderHistoryPage(),
     const RetailerAccountPage(),
+    const RetailerAlertsPage(),
   ];
 
   void _onNavTap(int index) {
@@ -32,7 +40,7 @@ class _RetailerDashboardPageState extends State<RetailerDashboardPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Retailer Dashboard'),
+        title: Text(_titles[_currentIndex]),
       ),
       body: _pages[_currentIndex],
       bottomNavigationBar: BottomNavBar(
@@ -40,9 +48,9 @@ class _RetailerDashboardPageState extends State<RetailerDashboardPage> {
         onTap: _onNavTap,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.inventory_2_outlined), label: 'Products'),
-          BottomNavigationBarItem(icon: Icon(Icons.receipt_long_outlined), label: 'Orders'),
+          BottomNavigationBarItem(icon: Icon(Icons.history), label: 'Orders'),
           BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Account'),
+          BottomNavigationBarItem(icon: Icon(Icons.notifications_none), label: 'Alerts'),
         ],
       ),
     );

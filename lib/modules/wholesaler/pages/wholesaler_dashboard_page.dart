@@ -4,8 +4,10 @@ import 'package:local_mart/modules/wholesaler/pages/wholesaler_order_history_pag
 import 'package:local_mart/widgets/bottom_nav_bar.dart';
 import 'package:local_mart/modules/wholesaler/pages/wholesaler_home_page.dart';
 import 'package:local_mart/modules/wholesaler/pages/wholesaler_account_page.dart';
+import 'package:local_mart/modules/wholesaler/pages/wholesaler_alerts_page.dart';
 
 class WholesalerDashboardPage extends StatefulWidget {
+  static const String routeName = '/wholesaler-dashboard';
   const WholesalerDashboardPage({super.key});
 
   @override
@@ -19,12 +21,14 @@ class _WholesalerDashboardPageState extends State<WholesalerDashboardPage> {
     'Wholesaler Home',
     'Orders',
     'Account',
+    'Alerts',
   ];
 
   final List<Widget> _pages = [
     const WholesalerHomePage(),
     const WholesalerOrderHistoryPage(),
     const WholesalerAccountPage(),
+    const WholesalerAlertsPage(),
   ];
 
   void _onNavTap(int index) {
@@ -47,6 +51,7 @@ class _WholesalerDashboardPageState extends State<WholesalerDashboardPage> {
           BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.history), label: 'Orders'),
           BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Account'),
+          BottomNavigationBarItem(icon: Icon(Icons.notifications_none), label: 'Alerts'),
         ],
       ),
     );
