@@ -80,8 +80,9 @@ class OrderProvider with ChangeNotifier {
   // --------------------------------------------------------------------------
   Future<String> getRazorpayKey() async {
     final key = dotenv.env['RAZORPAY_KEY'];
-    if (key == null || key.isEmpty)
+    if (key == null || key.isEmpty) {
       throw Exception('Razorpay key missing in .env');
+    }
     return key;
   }
 
@@ -565,6 +566,35 @@ class OrderProvider with ChangeNotifier {
     super.dispose();
   }
 
+  // --------------------------------------------------------------------------
+  // Get orders where the current user is the seller (for retailers)
+  // --------------------------------------------------------------------------
+  Stream<List<models.Order>> getSellerOrders(String sellerId) {
+    return FirebaseFirestore.instance
+        .collectionGroup('orders') // Search across all 'orders' subcollections
+        .where('items', arrayContains: {'sellerId': sellerId}) // Filter by sellerId in order items
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs.map((doc) => models.Order.fromDoc(doc)).toList();
+    });
+  }
+
+  // --------------------------------------------------------------------------
+  // Get orders where the current user is the retailer (for wholesaler orders)
+  // --------------------------------------------------------------------------
+  Stream<List<models.Order>> getRetailerWholesalerOrders(String retailerId) {
+    return FirebaseFirestore.instance
+        .collectionGroup('orders') // Search across all 'orders' subcollections
+        .where('retailerId', isEqualTo: retailerId) // Filter by retailerId
+        .where('status', isNotEqualTo: 'delivered') // Exclude delivered orders
+        .where('status', isNotEqualTo: 'cancelled') // Exclude cancelled orders
+        .where('status', isNotEqualTo: 'pickup_cancelled') // Exclude pickup cancelled orders
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs.map((doc) => models.Order.fromDoc(doc)).toList();
+    });
+  }
+
   //Sending email
   Future<void> _sendEmailIfNeeded({
     required String userId,
@@ -635,20 +665,22 @@ class OrderProvider with ChangeNotifier {
     //Skip cancelled/delivered
     if (order.status == 'delivered' ||
         order.status == 'cancelled' ||
-        order.status == 'pickup_cancelled')
+        order.status == 'pickup_cancelled') {
       return;
+    }
 
     final elapsed = DateTime.now().difference(order.placedAt);
     final etaDays = order.etaDays ?? 3;
 
     String? newStatus;
 
-    if (elapsed.inDays >= etaDays)
+    if (elapsed.inDays >= etaDays) {
       newStatus = "delivered";
-    else if (elapsed.inDays >= (etaDays * 0.75).round())
+    } else if (elapsed.inDays >= (etaDays * 0.75).round()) {
       newStatus = "out_for_delivery";
-    else if (elapsed.inDays >= (etaDays * 0.25).round())
+    } else if (elapsed.inDays >= (etaDays * 0.25).round()) {
       newStatus = "shipped";
+    }
 
     if (newStatus != null && newStatus != order.status) {
       await _service.updateOrderStatus(userId, orderId, newStatus);
@@ -733,12 +765,13 @@ class OrderProvider with ChangeNotifier {
 
       String? newStatus;
 
-      if (elapsed >= deliveredAt)
+      if (elapsed >= deliveredAt) {
         newStatus = 'delivered';
-      else if (elapsed >= outForDeliveryAt)
+      } else if (elapsed >= outForDeliveryAt) {
         newStatus = 'out_for_delivery';
-      else if (elapsed >= shippedAt)
+      } else if (elapsed >= shippedAt) {
         newStatus = 'shipped';
+      }
 
       if (newStatus != null && newStatus != order.status) {
         await _service.updateOrderStatus(userId, order.id, newStatus);

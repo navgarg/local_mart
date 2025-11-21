@@ -23,49 +23,45 @@ class _WholesalerInventoryPageState extends State<WholesalerInventoryPage> {
 
   @override
   Widget build(BuildContext context) {
-    if (_wholesalerId == null) {
-      return Scaffold(
-        appBar: AppBar(
-          automaticallyImplyLeading: true,
-          title: const Text('Wholesaler Inventory')),
-        body: const Center(child: Text('Please log in as a wholesaler.')),
-      );
-    }
-
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: true,
         title: const Text('Wholesaler Inventory'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const WholesalerProductFormPage(),
+        actions: _wholesalerId == null
+            ? []
+            : [
+                IconButton(
+                  icon: const Icon(Icons.add),
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const WholesalerProductFormPage(),
+                      ),
+                    );
+                  },
                 ),
-              );
-            },
-          ),
-        ],
+              ],
       ),
-      body: StreamBuilder<List<WholesalerProduct>>(
-        stream: Provider.of<WholesalerProductService>(context)
-            .getWholesalerProducts(_wholesalerId!),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
-          if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('No products in your inventory.'));
-          }
+      body: _wholesalerId == null
+          ? const Center(child: Text('Please log in as a wholesaler.'))
+          : StreamBuilder<List<WholesalerProduct>>(
+              stream: Provider.of<WholesalerProductService>(context)
+                  .getWholesalerProducts(_wholesalerId!),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                }
+                if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const Center(
+                      child: Text('No products in your inventory.'));
+                }
 
-          final products = snapshot.data!;
-          return ListView.builder(
-            itemCount: products.length,
+                final products = snapshot.data!;
+                return ListView.builder(
+                  itemCount: products.length,
             itemBuilder: (context, index) {
               final product = products[index];
               return Card(

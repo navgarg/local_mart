@@ -1,11 +1,8 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../../../widgets/search_bar.dart';
-import '../../../widgets/category_carousel.dart';
-import '../../../widgets/featured_products.dart';
-import '../../../widgets/order_again_carousel.dart';
-import '../../../widgets/recommended_for_you.dart';
+import 'package:local_mart/modules/wholesaler/pages/wholesaler_inventory_page.dart';
+import 'package:local_mart/modules/wholesaler/pages/wholesaler_retailer_history_list_page.dart';
+import 'package:local_mart/modules/retailer_wholesaler_order/pages/retailer_wholesaler_order_list_page.dart';
 
 class WholesalerHomePage extends StatefulWidget {
   const WholesalerHomePage({super.key});
@@ -15,80 +12,114 @@ class WholesalerHomePage extends StatefulWidget {
 }
 
 class _WholesalerHomePageState extends State<WholesalerHomePage> {
-  double _scrollOffset = 0.0;
-
   @override
   Widget build(BuildContext context) {
     final userId = FirebaseAuth.instance.currentUser?.uid ?? '';
 
-    return SafeArea(
-      child: Scaffold(
-        backgroundColor: Colors.grey[100],
-        body: NotificationListener<ScrollNotification>(
-          onNotification: (scroll) {
-            setState(() => _scrollOffset = scroll.metrics.pixels);
-            return false;
-          },
-          child: Column(
-            children: [
-              // 🔹 Floating / Shrinking Search Bar with Blur
-              ClipRect(
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    height: _scrollOffset > 15 ? 56 : 68,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha:0.85),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha:0.1),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: const SafeArea(child: SearchBarWidget()),
-                  ),
-                ),
-              ),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Wholesaler Dashboard'),
+        automaticallyImplyLeading: false, // Wholesaler dashboard is a top-level page
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Welcome, Wholesaler!',
+              style: Theme.of(context).textTheme.headlineMedium,
+            ),
+            const SizedBox(height: 20),
 
-              // 🔹 Scrollable main section
-              Expanded(
-                child: SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 8),
-                      const CategoryCarousel(),
-                      const SizedBox(height: 15),
-                      FeaturedProducts(),
-                      const SizedBox(height: 20),
-                      OrderAgainCarousel(),
-                      const SizedBox(height: 30),
-                      if (userId.isNotEmpty)
-                        RecommendedForYou(userId: userId),
-                      const SizedBox(height: 30),
-                      Center(
-                        child: Text(
-                          "🎉 You've reached the end!",
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[600],
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
+            // Section for New Retailer Orders
+            Card(
+              elevation: 2,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'New Retailer Orders',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: 10),
+                    // TODO: Implement logic to fetch and display new retailer orders
+                    const Text('No new orders at the moment.'),
+                    Align(
+                      alignment: Alignment.bottomRight,
+                      child: TextButton(
+                        onPressed: () {
+                          Navigator.pushNamed(context, '/wholesaler-orders'); // Assuming a route for all wholesaler orders
+                        },
+                        child: const Text('View All Retailer Orders'),
                       ),
-                      const SizedBox(height: 30),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 20),
+
+            // Section for Inventory Summary
+            Card(
+              elevation: 2,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Inventory Summary',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: 10),
+                    // TODO: Implement logic to fetch and display inventory summary
+                    const Text('Current stock: 1234 items'),
+                    Align(
+                      alignment: Alignment.bottomRight,
+                      child: TextButton(
+                        onPressed: () {
+                          Navigator.pushNamed(context, '/wholesaler-inventory');
+                        },
+                        child: const Text('Manage Inventory'),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // Quick Links Section
+            Text(
+              'Quick Actions',
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: [
+                ActionChip(
+                  label: const Text('Process Orders'),
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/wholesaler-orders');
+                  },
+                  avatar: const Icon(Icons.receipt_long),
+                ),
+                ActionChip(
+                  label: const Text('View Retailer History'),
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/wholesaler-retailer-history');
+                  },
+                  avatar: const Icon(Icons.people),
+                ),
+                // Add more quick links as needed
+              ],
+            ),
+          ],
         ),
       ),
     );
