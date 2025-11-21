@@ -3,28 +3,28 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:local_mart/modules/retailer_wholesaler_order/services/retailer_wholesaler_order_service.dart';
 import 'package:local_mart/widgets/order_card.dart';
 
-class RetailerOrdersPage extends StatelessWidget {
-  static const String routeName = '/retailer-orders';
+class WholesalerOrdersPage extends StatelessWidget {
+  static const String routeName = '/wholesaler-orders';
 
-  const RetailerOrdersPage({super.key});
+  const WholesalerOrdersPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final String? retailerId = FirebaseAuth.instance.currentUser?.uid;
+    final String? wholesalerId = FirebaseAuth.instance.currentUser?.uid;
 
-    if (retailerId == null) {
+    if (wholesalerId == null) {
       return Scaffold(
-        appBar: AppBar(title: Text('My Orders')),
-        body: Center(child: Text('Please log in to view your orders.')),
+        appBar: AppBar(title: const Text('Customer Orders')),
+        body: const Center(child: Text('Please log in to view customer orders.')),
       );
     }
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My Orders'),
+        title: const Text('Customer Orders'),
       ),
       body: StreamBuilder(
-        stream: RetailerWholesalerOrderService().getRetailerOrders(retailerId),
+        stream: RetailerWholesalerOrderService().getWholesalerOrders(wholesalerId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -33,7 +33,7 @@ class RetailerOrdersPage extends StatelessWidget {
             return Center(child: Text('Error: ${snapshot.error}'));
           }
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('No orders found.'));
+            return const Center(child: Text('No customer orders found.'));
           }
 
           final orders = snapshot.data!;
@@ -44,7 +44,7 @@ class RetailerOrdersPage extends StatelessWidget {
               final order = orders[index];
               return OrderCard(
                 order: order,
-                showWholesalerInfo: true, // Retailer sees which wholesaler they ordered from
+                showRetailerInfo: true, // Wholesaler sees which retailer placed the order
               );
             },
           );

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:local_mart/modules/wholesaler/pages/wholesaler_order_history_page.dart';
+import 'package:local_mart/modules/wholesaler/pages/wholesaler_orders_page.dart';
 
 import 'package:local_mart/widgets/bottom_nav_bar.dart';
 import 'package:local_mart/modules/wholesaler/pages/wholesaler_home_page.dart';
@@ -26,7 +26,7 @@ class _WholesalerDashboardPageState extends State<WholesalerDashboardPage> {
 
   final List<Widget> _pages = [
     const WholesalerHomePage(),
-    const WholesalerOrderHistoryPage(),
+    const WholesalerOrdersPage(),
     const WholesalerAccountPage(),
     const WholesalerAlertsPage(),
   ];

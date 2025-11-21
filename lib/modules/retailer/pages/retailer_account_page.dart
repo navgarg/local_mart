@@ -3,7 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:local_mart/models/app_user.dart';
-import 'package:local_mart/modules/retailer/pages/retailer_order_history_page.dart';
+import 'package:local_mart/modules/retailer/pages/retailer_orders_page.dart';
+import 'package:local_mart/modules/retailer/pages/retailer_alerts_page.dart';
 
 class RetailerAccountPage extends StatefulWidget {
   const RetailerAccountPage({super.key});
@@ -515,10 +516,7 @@ class _RetailerAccountPageState extends State<RetailerAccountPage> {
             _showAddressSheet,
           ),
           _buildOptionTile(Icons.receipt_long_outlined, 'Your Orders', () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const RetailerOrderHistoryPage()),
-            );
+            Navigator.pushNamed(context, RetailerOrdersPage.routeName);
           }),
           _buildOptionTile(
             Icons.settings_outlined,
@@ -526,10 +524,14 @@ class _RetailerAccountPageState extends State<RetailerAccountPage> {
             _showAppSettingsSheet,
           ),
           _buildOptionTile(Icons.info_outline, 'Legal & About', () {}),
-          _buildOptionTile(
-            Icons.feedback_outlined,
+          _buildOptionTile(Icons.feedback_outlined,
             'Feedback',
             _showFeedbackDialog,
+          ),
+          _buildOptionTile(
+            Icons.notifications_none,
+            'Alerts',
+            () => Navigator.pushNamed(context, RetailerAlertsPage.routeName),
           ),
           _buildOptionTile(
             Icons.support_agent_outlined,

@@ -10,7 +10,11 @@ import 'package:local_mart/modules/customer_order/pages/cart_page.dart';
 import 'package:local_mart/modules/customer_order/pages/checkout_page.dart';
 import 'package:local_mart/modules/customer_order/pages/delivery_tracking_page.dart';
 import 'package:local_mart/modules/customer_order/pages/pickup_tracking_page.dart';
-// ---------- CUSTOMER ORDER MODULE (Friend's Code) ----------
+import 'package:local_mart/modules/retailer/pages/retailer_orders_page.dart';
+import 'package:local_mart/modules/wholesaler/pages/wholesaler_orders_page.dart';
+import 'package:local_mart/modules/retailer/pages/retailer_alerts_page.dart';
+import 'package:local_mart/modules/wholesaler/pages/wholesaler_alerts_page.dart';
+import 'package:local_mart/modules/wholesaler/pages/wholesaler_orders_page.dart';
 import 'package:local_mart/modules/customer_order/providers/cart_provider.dart';
 import 'package:local_mart/modules/customer_order/providers/order_provider.dart';
 import 'package:local_mart/modules/retailer/pages/retailer_inventory_page.dart';
@@ -189,8 +193,12 @@ class MyApp extends StatelessWidget {
               const RetailerWholesalerOrderFormPage(),
           '/wholesaler-retailer-history': (context) =>
               const WholesalerRetailerHistoryListPage(),
-          '/wholesaler-dashboard': (context) => const WholesalerDashboardPage(),
-          '/retailer-dashboard': (context) => const RetailerDashboardPage(),
+                    '/wholesaler-dashboard': (context) => const WholesalerDashboardPage(),
+          WholesalerOrdersPage.routeName: (context) => const WholesalerOrdersPage(),
+          WholesalerAlertsPage.routeName: (context) => const WholesalerAlertsPage(),
+                    '/retailer-dashboard': (context) => const RetailerDashboardPage(),
+          RetailerOrdersPage.routeName: (context) => const RetailerOrdersPage(),
+          RetailerAlertsPage.routeName: (context) => const RetailerAlertsPage(),
 
           // ---------- CUSTOMER ORDER ROUTES ----------
           // '/products': (_) => const ProductsPage(),

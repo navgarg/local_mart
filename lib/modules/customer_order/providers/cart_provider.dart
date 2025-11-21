@@ -1,12 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:local_mart/models/alert.dart';
+import 'package:local_mart/services/alert_service.dart';
 
 import '../models/order_model.dart' as app_models;
 import '../services/order_service.dart';
 
 class CartProvider with ChangeNotifier {
   final OrderService _orderService = OrderService();
+  final AlertService _alertService = AlertService();
 
   // 🛒 Local cart items: productId -> OrderItem
   final Map<String, app_models.OrderItem> _items = {};
@@ -179,6 +182,20 @@ class CartProvider with ChangeNotifier {
     );
 
     await _orderService.placeOrder(order, perRetailerDelivery: deliveryMap);
+
+    // Generate alerts for retailers
+    final grouped = groupedByRetailer();
+    for (final retailerId in grouped.keys) {
+      final retailerItems = grouped[retailerId]!;
+      final message = "New order placed by ${customerName} for items: ${retailerItems.map((e) => e.name).join(', ')}.";
+      _alertService.addAlert(Alert(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        userId: retailerId, // The retailer's ID
+        message: message,
+        type: "new_order",
+        timestamp: Timestamp.now(),
+      ));
+    }
 
     clear();
   }
