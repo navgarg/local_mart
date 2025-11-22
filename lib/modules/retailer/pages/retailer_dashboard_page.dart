@@ -5,6 +5,7 @@ import 'package:local_mart/modules/retailer/pages/retailer_order_history_page.da
 import 'package:local_mart/modules/retailer/pages/retailer_account_page.dart';
 import 'package:local_mart/modules/retailer/pages/retailer_alerts_page.dart';
 import 'package:local_mart/widgets/bottom_nav_bar.dart';
+import 'package:local_mart/modules/retailer/pages/retailer_inventory_page.dart';
 
 class RetailerDashboardPage extends StatefulWidget {
   static const String routeName = '/retailer-dashboard';
@@ -22,13 +23,15 @@ class _RetailerDashboardPageState extends State<RetailerDashboardPage> {
     'Orders',
     'Account',
     'Alerts',
+    'Inventory',
   ];
 
   final List<Widget> _pages = [
-    RetailerHomePage(userId: FirebaseAuth.instance.currentUser!.uid),
+    RetailerHomePage(userId: FirebaseAuth.instance.currentUser?.uid ?? 'defaultRetailerId'),
     const RetailerOrderHistoryPage(),
-    RetailerAccountPage(userId: FirebaseAuth.instance.currentUser!.uid, onLogout: () {}),
+    RetailerAccountPage(userId: FirebaseAuth.instance.currentUser?.uid ?? 'defaultRetailerId', onLogout: () {}),
     const RetailerAlertsPage(),
+    RetailerInventoryPage(retailerId: FirebaseAuth.instance.currentUser?.uid ?? 'defaultRetailerId'),
   ];
 
   void _onNavTap(int index) {
@@ -58,6 +61,10 @@ class _RetailerDashboardPageState extends State<RetailerDashboardPage> {
           BottomNavigationBarItem(
             icon: Icon(Icons.notifications_none),
             label: 'Alerts',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.inventory_2_outlined),
+            label: 'Inventory',
           ),
         ],
       ),
