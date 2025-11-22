@@ -55,13 +55,11 @@ class _RetailerProductFormPageState extends State<RetailerProductFormPage> {
         context,
         listen: false,
       );
-      final String retailerId = widget.retailerId;
-
-      // Fetch wholesaler product to get its category
       final wholesalerProductService = Provider.of<WholesalerProductService>(
         context,
         listen: false,
       );
+      final String retailerId = widget.retailerId;
       final wholesalerProductId = _wholesalerProductIdController.text;
       final wholesalerProductStream = wholesalerProductService
           .getWholesalerProductById(wholesalerProductId);
@@ -69,6 +67,7 @@ class _RetailerProductFormPageState extends State<RetailerProductFormPage> {
           await wholesalerProductStream.first;
 
       if (wholesalerProduct == null) {
+        if (!mounted) return;
         // Handle case where wholesaler product is not found
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Wholesaler Product not found.')),

@@ -1,6 +1,5 @@
 // lib/main.dart
 
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 // Firebase Auth & Firestore (if you need them later)
 import 'package:firebase_auth/firebase_auth.dart';
@@ -12,7 +11,6 @@ import 'package:local_mart/modules/customer_order/pages/checkout_page.dart';
 import 'package:local_mart/modules/customer_order/pages/delivery_tracking_page.dart';
 import 'package:local_mart/modules/customer_order/pages/pickup_tracking_page.dart';
 import 'package:local_mart/modules/retailer/pages/retailer_orders_page.dart';
-
 
 import 'package:local_mart/modules/retailer/pages/retailer_alerts_page.dart';
 import 'package:local_mart/modules/wholesaler/pages/wholesaler_alerts_page.dart';
@@ -159,7 +157,7 @@ class MyApp extends StatelessWidget {
         Provider(create: (_) => RetailerOrderService()),
         Provider(create: (_) => RetailerWholesalerOrderService()),
         Provider(create: (_) => WholesalerRetailerHistoryService()),
-            Provider(create: (_) => WholesalerProductService()),
+        Provider(create: (_) => WholesalerProductService()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -193,28 +191,37 @@ class MyApp extends StatelessWidget {
           '/retailer-inventory': (context) {
             final user = FirebaseAuth.instance.currentUser;
             if (user == null) {
-              return const Scaffold(body: Center(child: Text('User not logged in')));
+              return const Scaffold(
+                body: Center(child: Text('User not logged in')),
+              );
             }
             return RetailerInventoryPage(retailerId: user.uid);
           },
           '/retailer-customer-history': (context) {
             final user = FirebaseAuth.instance.currentUser;
             if (user == null) {
-              return const Scaffold(body: Center(child: Text('User not logged in')));
+              return const Scaffold(
+                body: Center(child: Text('User not logged in')),
+              );
             }
             return RetailerCustomerHistoryPage(retailerId: user.uid);
           },
           '/retailer-wholesaler-orders': (context) {
             final user = FirebaseAuth.instance.currentUser;
             if (user == null) {
-              return const Scaffold(body: Center(child: Text('User not logged in'))); // Or redirect to login
+              return const Scaffold(
+                body: Center(child: Text('User not logged in')),
+              ); // Or redirect to login
             }
             return RetailerWholesalerOrderListPage(retailerId: user.uid);
           },
           '/retailer-wholesaler-order-form': (context) {
-            final retailerId = ModalRoute.of(context)!.settings.arguments as String?;
+            final retailerId =
+                ModalRoute.of(context)!.settings.arguments as String?;
             if (retailerId == null) {
-              return const Scaffold(body: Center(child: Text('Retailer ID not provided'))); // Handle error
+              return const Scaffold(
+                body: Center(child: Text('Retailer ID not provided')),
+              ); // Handle error
             }
             return RetailerWholesalerOrderFormPage();
           },
@@ -223,32 +230,40 @@ class MyApp extends StatelessWidget {
           '/wholesaler-inventory': (context) {
             final user = FirebaseAuth.instance.currentUser;
             if (user == null) {
-              return const Scaffold(body: Center(child: Text('User not logged in')));
+              return const Scaffold(
+                body: Center(child: Text('User not logged in')),
+              );
             }
-            return WholesalerInventoryPage(wholesalerId: user.uid);
+            return WholesalerInventoryPage(sellerId: user.uid);
           },
-                    '/wholesaler-dashboard': (context) {
+          '/wholesaler-dashboard': (context) {
             final user = FirebaseAuth.instance.currentUser;
             if (user == null) {
-              return const Scaffold(body: Center(child: Text('User not logged in')));
+              return const Scaffold(
+                body: Center(child: Text('User not logged in')),
+              );
             }
-            return WholesalerDashboardPage(userId: user.uid);
+            return WholesalerDashboardPage(sellerId: user.uid);
           },
           WholesalerOrdersPage.routeName: (context) {
             final user = FirebaseAuth.instance.currentUser;
             if (user == null) {
-              return const Scaffold(body: Center(child: Text('User not logged in')));
+              return const Scaffold(
+                body: Center(child: Text('User not logged in')),
+              );
             }
-            return WholesalerOrdersPage(wholesalerId: user.uid);
+            return WholesalerOrdersPage(sellerId: user.uid);
           },
           WholesalerAlertsPage.routeName: (context) {
             final user = FirebaseAuth.instance.currentUser;
             if (user == null) {
-              return const Scaffold(body: Center(child: Text('User not logged in')));
+              return const Scaffold(
+                body: Center(child: Text('User not logged in')),
+              );
             }
-            return WholesalerAlertsPage(userId: user.uid);
+            return WholesalerAlertsPage(sellerId: user.uid);
           },
-                    '/retailer-dashboard': (context) => const RetailerDashboardPage(),
+          '/retailer-dashboard': (context) => const RetailerDashboardPage(),
           RetailerOrdersPage.routeName: (context) => const RetailerOrdersPage(),
           RetailerAlertsPage.routeName: (context) => const RetailerAlertsPage(),
 
