@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:local_mart/models/address.dart';
 
+
 class Wholesaler {
   final String id;
   final String name;
