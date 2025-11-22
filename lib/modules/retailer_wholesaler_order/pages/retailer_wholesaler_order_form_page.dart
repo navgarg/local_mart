@@ -19,7 +19,7 @@ class RetailerWholesalerOrderFormPage extends StatefulWidget {
 class _RetailerWholesalerOrderFormPageState
     extends State<RetailerWholesalerOrderFormPage> {
   final _formKey = GlobalKey<FormState>();
-  late String _retailerId;
+  String? _retailerId;
   String? _wholesalerId;
   List<RetailerWholesalerOrderItem> _items = [];
   String _status = 'pending';
@@ -28,7 +28,6 @@ class _RetailerWholesalerOrderFormPageState
   @override
   void initState() {
     super.initState();
-    _retailerId = FirebaseAuth.instance.currentUser!.uid;
     if (widget.order != null) {
       _wholesalerId = widget.order!.wholesalerId;
       _items = List.from(widget.order!.items);
@@ -37,12 +36,29 @@ class _RetailerWholesalerOrderFormPageState
     }
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_retailerId == null) { // Only set if not already set by widget.order
+      final String? retailerId = ModalRoute.of(context)?.settings.arguments as String?;
+      if (retailerId != null) {
+        _retailerId = retailerId;
+      } else {
+        _retailerId = FirebaseAuth.instance.currentUser!.uid;
+      }
+    }
+  }
+
   void _saveOrder() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
 
-      if (_wholesalerId == null || _items.isEmpty) {
-        // Show error if wholesaler not selected or no items added
+      if (_wholesalerId == null || _items.isEmpty || _retailerId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please select a wholesaler, add items, and ensure retailer ID is available.'),
+          ),
+        );
         return;
       }
 
@@ -50,7 +66,7 @@ class _RetailerWholesalerOrderFormPageState
 
       final newOrder = RetailerWholesalerOrder(
         id: widget.order?.id ?? const Uuid().v4(),
-        retailerId: _retailerId,
+        retailerId: _retailerId!,
         wholesalerId: _wholesalerId!,
         items: _items,
         totalAmount: totalAmount,
@@ -158,8 +174,8 @@ class _RetailerWholesalerOrderFormPageState
                       name: 'Sample Product',
                       price: 100.0,
                       quantity: 1,
-                      wholesalerId: _wholesalerId ?? '',
-                      retailerId: _retailerId,
+                      wholesalerId: _wholesalerId!,
+                      retailerId: _retailerId!,
                       productPath: 'products/prod1',
                     ));
                   });

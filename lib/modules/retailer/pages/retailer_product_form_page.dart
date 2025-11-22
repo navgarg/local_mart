@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:local_mart/models/retailer_product.dart';
@@ -7,8 +6,9 @@ import 'package:local_mart/modules/retailer/services/retailer_product_service.da
 
 class RetailerProductFormPage extends StatefulWidget {
   final RetailerProduct? retailerProduct;
+  final String retailerId;
 
-  const RetailerProductFormPage({super.key, this.retailerProduct});
+  const RetailerProductFormPage({super.key, this.retailerProduct, required this.retailerId});
 
   @override
   State<RetailerProductFormPage> createState() => _RetailerProductFormPageState();
@@ -39,7 +39,7 @@ class _RetailerProductFormPageState extends State<RetailerProductFormPage> {
   Future<void> _saveProduct() async {
     if (_formKey.currentState!.validate()) {
       final retailerProductService = Provider.of<RetailerProductService>(context, listen: false);
-      final String retailerId = FirebaseAuth.instance.currentUser!.uid;
+      final String retailerId = widget.retailerId;
 
       if (widget.retailerProduct == null) {
         // Add new product

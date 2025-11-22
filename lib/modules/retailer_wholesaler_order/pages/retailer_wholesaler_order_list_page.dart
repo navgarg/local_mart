@@ -1,59 +1,19 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:local_mart/modules/retailer_wholesaler_order/models/retailer_wholesaler_order_model.dart';
 import 'package:local_mart/modules/retailer_wholesaler_order/services/retailer_wholesaler_order_service.dart';
 import 'package:local_mart/modules/retailer_wholesaler_order/pages/retailer_wholesaler_order_form_page.dart';
 import 'package:provider/provider.dart';
 
-class RetailerWholesalerOrderListPage extends StatefulWidget {
-  const RetailerWholesalerOrderListPage({super.key});
+class RetailerWholesalerOrderListPage extends StatelessWidget {
+  final String retailerId;
+  const RetailerWholesalerOrderListPage({super.key, required this.retailerId});
 
   @override
-  State<RetailerWholesalerOrderListPage> createState() =>
-      _RetailerWholesalerOrderListPageState();
-}
-
-class _RetailerWholesalerOrderListPageState
-    extends State<RetailerWholesalerOrderListPage> {
-  String? _retailerId;
-
-  @override
-  void initState() {
-    super.initState();
-    _retailerId = FirebaseAuth.instance.currentUser?.uid;
-  }
-
   @override
   Widget build(BuildContext context) {
-    if (_retailerId == null) {
-      return Scaffold(
-        appBar: AppBar(
-          automaticallyImplyLeading: true,
-          title: const Text('My Wholesaler Orders')),
-        body: const Center(child: Text('Please log in as a retailer.')),
-      );
-    }
-
-    return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: true,
-        title: const Text('My Wholesaler Orders'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const RetailerWholesalerOrderFormPage(),
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-      body: StreamBuilder<List<RetailerWholesalerOrder>>(
+    return StreamBuilder<List<RetailerWholesalerOrder>>(
         stream: Provider.of<RetailerWholesalerOrderService>(context)
-            .getRetailerOrders(_retailerId!),
+            .getRetailerOrders(retailerId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -140,7 +100,6 @@ class _RetailerWholesalerOrderListPageState
             },
           );
         },
-      ),
-    );
+      );
   }
 }

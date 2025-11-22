@@ -1,52 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+
 import 'package:local_mart/models/wholesaler_product.dart'; // Assuming a new model for wholesaler products
 import 'package:local_mart/modules/wholesaler/services/wholesaler_product_service.dart'; // Assuming a new service
 import 'package:local_mart/modules/wholesaler/pages/wholesaler_product_form_page.dart'; // Assuming a new form page
 
-class WholesalerInventoryPage extends StatefulWidget {
-  const WholesalerInventoryPage({super.key});
+class WholesalerInventoryPage extends StatelessWidget {
+  final String wholesalerId;
+  const WholesalerInventoryPage({super.key, required this.wholesalerId});
 
   @override
-  State<WholesalerInventoryPage> createState() => _WholesalerInventoryPageState();
-}
-
-class _WholesalerInventoryPageState extends State<WholesalerInventoryPage> {
-  String? _wholesalerId;
-
-  @override
-  void initState() {
-    super.initState();
-    _wholesalerId = FirebaseAuth.instance.currentUser?.uid;
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: true,
-        title: const Text('Wholesaler Inventory'),
-        actions: _wholesalerId == null
-            ? []
-            : [
-                IconButton(
-                  icon: const Icon(Icons.add),
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const WholesalerProductFormPage(),
-                      ),
-                    );
-                  },
-                ),
-              ],
-      ),
-      body: _wholesalerId == null
-          ? const Center(child: Text('Please log in as a wholesaler.'))
-          : StreamBuilder<List<WholesalerProduct>>(
+    return StreamBuilder<List<WholesalerProduct>>(
               stream: Provider.of<WholesalerProductService>(context)
-                  .getWholesalerProducts(_wholesalerId!),
+                  .getWholesalerProducts(wholesalerId),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -98,7 +66,6 @@ class _WholesalerInventoryPageState extends State<WholesalerInventoryPage> {
             },
           );
         },
-      ),
-    );
+      );
   }
 }
