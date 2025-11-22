@@ -1,36 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+
 import 'package:local_mart/modules/retailer/services/retailer_order_service.dart';
 import 'package:local_mart/modules/customer_order/models/order_model.dart' as local_mart_order;
 
-class RetailerCustomerHistoryPage extends StatefulWidget {
-  const RetailerCustomerHistoryPage({super.key});
+class RetailerCustomerHistoryPage extends StatelessWidget {
+  final String retailerId;
+  const RetailerCustomerHistoryPage({super.key, required this.retailerId});
 
-  @override
-  State<RetailerCustomerHistoryPage> createState() => _RetailerCustomerHistoryPageState();
-}
-
-class _RetailerCustomerHistoryPageState extends State<RetailerCustomerHistoryPage> {
-  String? _retailerId;
-
-  @override
-  void initState() {
-    super.initState();
-    _retailerId = FirebaseAuth.instance.currentUser?.uid;
-  }
 
   @override
   Widget build(BuildContext context) {
-    if (_retailerId == null) {
-      return Scaffold(
-        appBar: AppBar(
-    automaticallyImplyLeading: true,
-    title: const Text('Customer Purchase History'),
-  ),
-        body: const Center(child: Text('Please log in as a retailer.')),
-      );
-    }
+
 
     return Scaffold(
       appBar: AppBar(
@@ -39,7 +20,7 @@ class _RetailerCustomerHistoryPageState extends State<RetailerCustomerHistoryPag
   ),
       body: StreamBuilder<List<local_mart_order.Order>>(
         stream: Provider.of<RetailerOrderService>(context)
-            .getRetailerOrders(_retailerId!),
+            .getRetailerOrders(retailerId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
