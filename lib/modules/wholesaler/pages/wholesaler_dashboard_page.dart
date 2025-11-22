@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'package:local_mart/modules/wholesaler/pages/wholesaler_orders_page.dart';
 
 import 'package:local_mart/widgets/bottom_nav_bar.dart';
@@ -9,7 +10,8 @@ import 'package:local_mart/modules/wholesaler/pages/wholesaler_inventory_page.da
 
 class WholesalerDashboardPage extends StatefulWidget {
   static const String routeName = '/wholesaler-dashboard';
-  const WholesalerDashboardPage({super.key});
+  final String userId;
+  const WholesalerDashboardPage({super.key, required this.userId});
 
   @override
   State<WholesalerDashboardPage> createState() => _WholesalerDashboardPageState();
@@ -26,13 +28,13 @@ class _WholesalerDashboardPageState extends State<WholesalerDashboardPage> {
     'Inventory',
   ];
 
-  final List<Widget> _pages = [
-    const WholesalerHomePage(),
-    const WholesalerOrdersPage(),
-    const WholesalerAccountPage(),
-    const WholesalerAlertsPage(),
-    const WholesalerInventoryPage(),
-  ];
+  List<Widget> _pages(String userId) => [
+        WholesalerHomePage(userId: userId, onNavigate: _onNavTap),
+        WholesalerOrdersPage(wholesalerId: userId),
+        WholesalerAccountPage(userId: userId),
+        WholesalerAlertsPage(userId: userId),
+        WholesalerInventoryPage(wholesalerId: userId),
+      ];
 
   void _onNavTap(int index) {
     setState(() {
@@ -42,12 +44,14 @@ class _WholesalerDashboardPageState extends State<WholesalerDashboardPage> {
 
   @override
   Widget build(BuildContext context) {
+
+
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: true,
         title: Text(_titles[_currentIndex]),
       ),
-      body: _pages[_currentIndex],
+      body: _pages(widget.userId)[_currentIndex],
       bottomNavigationBar: BottomNavBar(
         currentIndex: _currentIndex,
         onTap: _onNavTap,

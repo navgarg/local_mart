@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:local_mart/modules/retailer/pages/retailer_home_page.dart';
 import 'package:local_mart/modules/retailer/pages/retailer_order_history_page.dart';
 import 'package:local_mart/modules/retailer/pages/retailer_account_page.dart';
@@ -24,9 +25,9 @@ class _RetailerDashboardPageState extends State<RetailerDashboardPage> {
   ];
 
   final List<Widget> _pages = [
-    const RetailerHomePage(),
+    RetailerHomePage(userId: FirebaseAuth.instance.currentUser!.uid),
     const RetailerOrderHistoryPage(),
-    const RetailerAccountPage(),
+    RetailerAccountPage(userId: FirebaseAuth.instance.currentUser!.uid, onLogout: () {}),
     const RetailerAlertsPage(),
   ];
 
@@ -39,18 +40,25 @@ class _RetailerDashboardPageState extends State<RetailerDashboardPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(_titles[_currentIndex]),
-      ),
+      appBar: AppBar(title: Text(_titles[_currentIndex])),
       body: _pages[_currentIndex],
       bottomNavigationBar: BottomNavBar(
         currentIndex: _currentIndex,
         onTap: _onNavTap,
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'Home'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_outlined),
+            label: 'Home',
+          ),
           BottomNavigationBarItem(icon: Icon(Icons.history), label: 'Orders'),
-          BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Account'),
-          BottomNavigationBarItem(icon: Icon(Icons.notifications_none), label: 'Alerts'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline),
+            label: 'Account',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.notifications_none),
+            label: 'Alerts',
+          ),
         ],
       ),
     );
