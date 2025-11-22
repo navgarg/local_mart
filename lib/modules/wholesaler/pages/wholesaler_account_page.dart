@@ -5,18 +5,18 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:local_mart/models/app_user.dart';
 
 class WholesalerAccountPage extends StatelessWidget {
-  final String userId;
-  const WholesalerAccountPage({super.key, required this.userId});
+  final String sellerId;
+  const WholesalerAccountPage({super.key, required this.sellerId});
 
   @override
   Widget build(BuildContext context) {
-    return _WholesalerAccountPageContent(userId: userId);
+    return _WholesalerAccountPageContent(sellerId: sellerId);
   }
 }
 
 class _WholesalerAccountPageContent extends StatefulWidget {
-  final String userId;
-  const _WholesalerAccountPageContent({required this.userId});
+  final String sellerId;
+  const _WholesalerAccountPageContent({required this.sellerId});
 
   @override
   State<_WholesalerAccountPageContent> createState() => _WholesalerAccountPageContentState();
@@ -44,7 +44,7 @@ class _WholesalerAccountPageContentState extends State<_WholesalerAccountPageCon
     if (user == null) return;
     final doc = await FirebaseFirestore.instance
         .collection('users')
-        .doc(widget.userId)
+        .doc(widget.sellerId)
         .get();
     final data = doc.data();
     if (doc.exists && data != null) {
@@ -74,7 +74,7 @@ class _WholesalerAccountPageContentState extends State<_WholesalerAccountPageCon
 
     final userRef = FirebaseFirestore.instance
         .collection('users')
-        .doc(widget.userId);
+        .doc(widget.sellerId);
     final doc = await userRef.get();
 
     if (doc.exists) {

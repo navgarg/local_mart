@@ -10,11 +10,12 @@ import 'package:local_mart/modules/wholesaler/pages/wholesaler_inventory_page.da
 
 class WholesalerDashboardPage extends StatefulWidget {
   static const String routeName = '/wholesaler-dashboard';
-  final String userId;
-  const WholesalerDashboardPage({super.key, required this.userId});
+  final String sellerId;
+  const WholesalerDashboardPage({super.key, required this.sellerId});
 
   @override
-  State<WholesalerDashboardPage> createState() => _WholesalerDashboardPageState();
+  State<WholesalerDashboardPage> createState() =>
+      _WholesalerDashboardPageState();
 }
 
 class _WholesalerDashboardPageState extends State<WholesalerDashboardPage> {
@@ -28,13 +29,13 @@ class _WholesalerDashboardPageState extends State<WholesalerDashboardPage> {
     'Inventory',
   ];
 
-  List<Widget> _pages(String userId) => [
-        WholesalerHomePage(userId: userId, onNavigate: _onNavTap),
-        WholesalerOrdersPage(wholesalerId: userId),
-        WholesalerAccountPage(userId: userId),
-        WholesalerAlertsPage(userId: userId),
-        WholesalerInventoryPage(wholesalerId: userId),
-      ];
+  List<Widget> _pages(String sellerId) => [
+    WholesalerHomePage(sellerId: sellerId, onNavigate: _onNavTap),
+    WholesalerOrdersPage(sellerId: sellerId),
+    WholesalerAccountPage(sellerId: sellerId),
+    WholesalerAlertsPage(sellerId: sellerId),
+    WholesalerInventoryPage(sellerId: sellerId),
+  ];
 
   void _onNavTap(int index) {
     setState(() {
@@ -44,23 +45,33 @@ class _WholesalerDashboardPageState extends State<WholesalerDashboardPage> {
 
   @override
   Widget build(BuildContext context) {
-
-
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: true,
         title: Text(_titles[_currentIndex]),
       ),
-      body: _pages(widget.userId)[_currentIndex],
+      body: _pages(widget.sellerId)[_currentIndex],
       bottomNavigationBar: BottomNavBar(
         currentIndex: _currentIndex,
         onTap: _onNavTap,
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'Home'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_outlined),
+            label: 'Home',
+          ),
           BottomNavigationBarItem(icon: Icon(Icons.history), label: 'Orders'),
-          BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Account'),
-          BottomNavigationBarItem(icon: Icon(Icons.notifications_none), label: 'Alerts'),
-          BottomNavigationBarItem(icon: Icon(Icons.inventory), label: 'Inventory'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline),
+            label: 'Account',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.notifications_none),
+            label: 'Alerts',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.inventory),
+            label: 'Inventory',
+          ),
         ],
       ),
     );

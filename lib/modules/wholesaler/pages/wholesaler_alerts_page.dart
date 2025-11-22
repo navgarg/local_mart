@@ -4,15 +4,15 @@ import 'package:local_mart/widgets/alert_card.dart';
 
 class WholesalerAlertsPage extends StatelessWidget {
   static const String routeName = '/wholesaler-alerts';
-  final String userId;
+  final String sellerId;
 
-  const WholesalerAlertsPage({super.key, required this.userId});
+  const WholesalerAlertsPage({super.key, required this.sellerId});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: StreamBuilder(
-        stream: AlertService().getAlertsForUser(userId),
+        stream: AlertService().getAlertsForUser(sellerId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());

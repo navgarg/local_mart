@@ -10,20 +10,20 @@ import 'package:local_mart/models/wholesaler_product.dart';
 import 'package:local_mart/modules/wholesaler/services/wholesaler_product_service.dart';
 
 class WholesalerHomePage extends StatelessWidget {
-  final String userId;
+  final String sellerId;
   final Function(int) onNavigate;
-  const WholesalerHomePage({super.key, required this.userId, required this.onNavigate});
+  const WholesalerHomePage({super.key, required this.sellerId, required this.onNavigate});
 
   @override
   Widget build(BuildContext context) {
-    return WholesalerDashboardContent(onNavigate: onNavigate, userId: userId);
+    return WholesalerDashboardContent(onNavigate: onNavigate, sellerId: sellerId);
   }
 }
 
 class WholesalerDashboardContent extends StatelessWidget {
   final Function(int) onNavigate;
-  final String userId;
-  const WholesalerDashboardContent({super.key, required this.onNavigate, required this.userId});
+  final String sellerId;
+  const WholesalerDashboardContent({super.key, required this.onNavigate, required this.sellerId});
 
   @override
   Widget build(BuildContext context) {
@@ -57,7 +57,7 @@ class WholesalerDashboardContent extends StatelessWidget {
                   const SizedBox(height: 10),
                   StreamBuilder<List<Order>>(
                     stream: Provider.of<OrderProvider>(context)
-                        .getSellerOrders(this.userId),
+                        .getSellerOrders(this.sellerId),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return const Center(child: CircularProgressIndicator());
@@ -128,7 +128,7 @@ class WholesalerDashboardContent extends StatelessWidget {
                   const SizedBox(height: 10),
                   StreamBuilder<List<WholesalerProduct>>(
                     stream: Provider.of<WholesalerProductService>(context)
-                        .getWholesalerProducts(this.userId),
+                        .getAllWholesalerProducts(this.sellerId),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return const Center(child: CircularProgressIndicator());

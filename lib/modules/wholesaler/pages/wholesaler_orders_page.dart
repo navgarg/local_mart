@@ -4,15 +4,15 @@ import 'package:local_mart/widgets/order_card.dart';
 
 class WholesalerOrdersPage extends StatelessWidget {
   static const String routeName = '/wholesaler-orders';
-  final String wholesalerId;
+  final String sellerId;
 
-  const WholesalerOrdersPage({super.key, required this.wholesalerId});
+  const WholesalerOrdersPage({super.key, required this.sellerId});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: StreamBuilder(
-        stream: RetailerWholesalerOrderService().getWholesalerOrders(wholesalerId),
+        stream: RetailerWholesalerOrderService().getWholesalerOrders(sellerId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());

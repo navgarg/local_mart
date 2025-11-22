@@ -6,8 +6,8 @@ import 'package:local_mart/modules/wholesaler/services/wholesaler_product_servic
 import 'package:local_mart/modules/wholesaler/pages/wholesaler_product_form_page.dart'; // Assuming a new form page
 
 class WholesalerInventoryPage extends StatelessWidget {
-  final String wholesalerId;
-  const WholesalerInventoryPage({super.key, required this.wholesalerId});
+  final String sellerId;
+  const WholesalerInventoryPage({super.key, required this.sellerId});
 
   @override
   @override
@@ -28,7 +28,7 @@ class WholesalerInventoryPage extends StatelessWidget {
       body: StreamBuilder<List<WholesalerProduct>>(
         stream: Provider.of<WholesalerProductService>(
           context,
-        ).getWholesalerProducts(wholesalerId),
+        ).getAllWholesalerProducts(sellerId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -73,7 +73,10 @@ class WholesalerInventoryPage extends StatelessWidget {
                           await Provider.of<WholesalerProductService>(
                             context,
                             listen: false,
-                          ).deleteWholesalerProduct(product.id);
+                          ).deleteWholesalerProduct(
+                            product.id!,
+                            product.category!,
+                          );
                         },
                       ),
                     ],
