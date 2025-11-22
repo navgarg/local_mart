@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:local_mart/modules/wholesaler/services/wholesaler_service.dart';
 
 import 'package:local_mart/modules/wholesaler/pages/wholesaler_orders_page.dart';
 
@@ -45,34 +47,37 @@ class _WholesalerDashboardPageState extends State<WholesalerDashboardPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: true,
-        title: Text(_titles[_currentIndex]),
-      ),
-      body: _pages(widget.sellerId)[_currentIndex],
-      bottomNavigationBar: BottomNavBar(
-        currentIndex: _currentIndex,
-        onTap: _onNavTap,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(icon: Icon(Icons.history), label: 'Orders'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            label: 'Account',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.notifications_none),
-            label: 'Alerts',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.inventory),
-            label: 'Inventory',
-          ),
-        ],
+    return ChangeNotifierProvider(
+      create: (context) => WholesalerService(),
+      child: Scaffold(
+        appBar: AppBar(
+          automaticallyImplyLeading: true,
+          title: Text(_titles[_currentIndex]),
+        ),
+        body: _pages(widget.sellerId)[_currentIndex],
+        bottomNavigationBar: BottomNavBar(
+          currentIndex: _currentIndex,
+          onTap: _onNavTap,
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home_outlined),
+              label: 'Home',
+            ),
+            BottomNavigationBarItem(icon: Icon(Icons.history), label: 'Orders'),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person_outline),
+              label: 'Account',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.notifications_none),
+              label: 'Alerts',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.inventory),
+              label: 'Inventory',
+            ),
+          ],
+        ),
       ),
     );
   }
