@@ -3,13 +3,19 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class CategoryService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  Future<List<String>> getCategories() async {
-    try {
-      final querySnapshot = await _firestore.collection('categories').get();
-      return querySnapshot.docs.map((doc) => doc.id).toList();
-    } catch (e) {
-      print('Error getting categories: $e');
-      return [];
-    }
+  Stream<List<String>> getCategories() {
+    return _firestore.collection('products').doc('Categories').snapshots().map((
+      snapshot,
+    ) {
+      if (!snapshot.exists || snapshot.data() == null) {
+        return [];
+      }
+      final data = snapshot.data()!;
+      final categoriesList = data['categoriesList'] as List<dynamic>?;
+      if (categoriesList == null) {
+        return [];
+      }
+      return categoriesList.map((e) => e.toString()).toList();
+    });
   }
 }

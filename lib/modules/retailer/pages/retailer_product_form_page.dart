@@ -3,8 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:local_mart/models/retailer_product.dart';
 import 'package:local_mart/modules/retailer/services/retailer_product_service.dart';
-import 'package:local_mart/modules/wholesaler/services/wholesaler_product_service.dart';
-import 'package:local_mart/models/wholesaler_product.dart';
+import 'package:local_mart/modules/wholesaler/services/category_service.dart';
 
 class RetailerProductFormPage extends StatefulWidget {
   final RetailerProduct? retailerProduct;
@@ -23,15 +22,27 @@ class RetailerProductFormPage extends StatefulWidget {
 
 class _RetailerProductFormPageState extends State<RetailerProductFormPage> {
   final _formKey = GlobalKey<FormState>();
-  late TextEditingController _wholesalerProductIdController;
+
+  late TextEditingController _nameController;
+  late TextEditingController _descriptionController;
+  late TextEditingController _imageController;
   late TextEditingController _priceController;
   late TextEditingController _stockController;
+  String? _selectedCategory;
+  List<String> _categories = [];
+  final CategoryService _categoryService = CategoryService();
 
   @override
   void initState() {
     super.initState();
-    _wholesalerProductIdController = TextEditingController(
-      text: widget.retailerProduct?.wholesalerProductId ?? '',
+    _nameController = TextEditingController(
+      text: widget.retailerProduct?.name ?? '',
+    );
+    _descriptionController = TextEditingController(
+      text: widget.retailerProduct?.description ?? '',
+    );
+    _imageController = TextEditingController(
+      text: widget.retailerProduct?.image ?? '',
     );
     _priceController = TextEditingController(
       text: widget.retailerProduct?.price.toString() ?? '',
@@ -39,14 +50,26 @@ class _RetailerProductFormPageState extends State<RetailerProductFormPage> {
     _stockController = TextEditingController(
       text: widget.retailerProduct?.stock.toString() ?? '',
     );
+    _selectedCategory = widget.retailerProduct?.category;
+    _loadCategories();
   }
 
   @override
   void dispose() {
-    _wholesalerProductIdController.dispose();
+    _nameController.dispose();
+    _descriptionController.dispose();
+    _imageController.dispose();
     _priceController.dispose();
     _stockController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadCategories() async {
+    _categoryService.getCategories().listen((categories) {
+      setState(() {
+        _categories = categories;
+      });
+    });
   }
 
   Future<void> _saveProduct() async {
@@ -55,36 +78,32 @@ class _RetailerProductFormPageState extends State<RetailerProductFormPage> {
         context,
         listen: false,
       );
-      final wholesalerProductService = Provider.of<WholesalerProductService>(
-        context,
-        listen: false,
-      );
       final String retailerId = widget.retailerId;
-      final wholesalerProductId = _wholesalerProductIdController.text;
-      final wholesalerProductStream = wholesalerProductService
-          .getWholesalerProductById(wholesalerProductId);
-      final WholesalerProduct? wholesalerProduct =
-          await wholesalerProductStream.first;
+      final String name = _nameController.text;
+      final String description = _descriptionController.text;
+      final String image = _imageController.text;
+      final int price = int.parse(_priceController.text);
+      final int stock = int.parse(_stockController.text);
 
-      if (wholesalerProduct == null) {
+      if (_selectedCategory == null) {
         if (!mounted) return;
-        // Handle case where wholesaler product is not found
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Wholesaler Product not found.')),
+          const SnackBar(content: Text('Please select a category')),
         );
         return;
       }
-
-      final String category = wholesalerProduct.category!;
+      final String category = _selectedCategory!;
 
       if (widget.retailerProduct == null) {
         // Add new product
         final newProduct = RetailerProduct(
-          id: DateTime.now().millisecondsSinceEpoch.toString(), // Temporary ID
-          wholesalerProductId: _wholesalerProductIdController.text,
+          id: DateTime.now().millisecondsSinceEpoch.toString(),
+          name: name,
+          description: description,
+          image: image,
           retailerId: retailerId,
-          price: int.parse(_priceController.text),
-          stock: int.parse(_stockController.text),
+          price: price,
+          stock: stock,
           createdAt: Timestamp.fromDate(DateTime.now()),
           updatedAt: Timestamp.fromDate(DateTime.now()),
           category: category,
@@ -93,16 +112,15 @@ class _RetailerProductFormPageState extends State<RetailerProductFormPage> {
       } else {
         // Update existing product
         final updatedProduct = widget.retailerProduct!.copyWith(
-          wholesalerProductId: _wholesalerProductIdController.text,
-          price: int.parse(_priceController.text),
-          stock: int.parse(_stockController.text),
+          name: name,
+          description: description,
+          image: image,
+          price: price,
+          stock: stock,
           updatedAt: Timestamp.fromDate(DateTime.now()),
           category: category,
         );
-        await retailerProductService.updateRetailerProduct(
-          updatedProduct,
-          category,
-        );
+        await retailerProductService.updateRetailerProduct(updatedProduct);
       }
       if (!mounted) return;
       Navigator.of(context).pop();
@@ -125,17 +143,57 @@ class _RetailerProductFormPageState extends State<RetailerProductFormPage> {
           child: Column(
             children: [
               TextFormField(
-                controller: _wholesalerProductIdController,
-                decoration: const InputDecoration(
-                  labelText: 'Wholesaler Product ID',
-                ),
+                controller: _nameController,
+                decoration: const InputDecoration(labelText: 'Product Name'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return 'Please enter a product ID';
+                    return 'Please enter a product name';
                   }
                   return null;
                 },
               ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _descriptionController,
+                decoration: const InputDecoration(labelText: 'Description'),
+                maxLines: 3,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a description';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _imageController,
+                decoration: const InputDecoration(
+                  labelText: 'Image URL (Optional)',
+                ),
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                value: _selectedCategory,
+                decoration: const InputDecoration(labelText: 'Category'),
+                items: _categories.map((category) {
+                  return DropdownMenuItem(
+                    value: category,
+                    child: Text(category),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedCategory = value;
+                  });
+                },
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please select a category';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _priceController,
                 decoration: const InputDecoration(labelText: 'Price'),
@@ -150,6 +208,7 @@ class _RetailerProductFormPageState extends State<RetailerProductFormPage> {
                   return null;
                 },
               ),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _stockController,
                 decoration: const InputDecoration(labelText: 'Stock'),
@@ -164,7 +223,7 @@ class _RetailerProductFormPageState extends State<RetailerProductFormPage> {
                   return null;
                 },
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: _saveProduct,
                 child: Text(

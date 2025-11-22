@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:local_mart/models/retailer_product.dart';
-import 'package:local_mart/services/category_service.dart';
-import 'package:rxdart/rxdart.dart'; // For switchMap
+
 
 class RetailerProductService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
@@ -9,62 +8,44 @@ class RetailerProductService {
   // Add a new retailer product
   Future<void> addRetailerProduct(RetailerProduct retailerProduct) async {
     await _db
-        .collection('retailerProducts')
-        .doc('Categories')
-        .collection(retailerProduct.category)
-        .add(retailerProduct.toFirestore());
+        .collection('products')
+        .doc(retailerProduct.id)
+        .set(retailerProduct.toFirestore());
   }
 
   // Get a retailer product by ID
-  Stream<RetailerProduct> getRetailerProduct(String retailerProductId, String category) {
+  Stream<RetailerProduct> getRetailerProduct(String productId) {
     return _db
-        .collection('retailerProducts')
-        .doc('Categories')
-        .collection(category)
-        .doc(retailerProductId)
+        .collection('products')
+        .doc(productId)
         .snapshots()
         .map((snapshot) => RetailerProduct.fromFirestore(snapshot));
   }
 
-  // Get all retailer products for a specific retailer across all categories
+  // Get all retailer products for a specific retailer
   Stream<List<RetailerProduct>> getRetailerProducts(String retailerId) {
-    final CategoryService categoryService = CategoryService();
-    return categoryService.getCategories().switchMap((categories) {
-      if (categories.isEmpty) {
-        return Stream.value([]);
-      }
-      final List<Stream<List<RetailerProduct>>> streams = categories.map((category) {
-        return _db
-            .collection('retailerProducts')
-            .doc('Categories')
-            .collection(category)
-            .where('retailerId', isEqualTo: retailerId)
-            .snapshots()
-            .map((snapshot) => snapshot.docs
-                .map((doc) => RetailerProduct.fromFirestore(doc))
-                .toList());
-      }).toList();
-      return Rx.combineLatestList<List<RetailerProduct>>(streams).map((lists) => lists.expand((list) => list).toList());
-    });
+    return _db
+        .collection('products')
+        .where('retailerId', isEqualTo: retailerId)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => RetailerProduct.fromFirestore(doc))
+            .toList());
   }
 
   // Update an existing retailer product
-  Future<void> updateRetailerProduct(RetailerProduct retailerProduct, String category) async {
+  Future<void> updateRetailerProduct(RetailerProduct retailerProduct) async {
     await _db
-        .collection('retailerProducts')
-        .doc('Categories')
-        .collection(category)
+        .collection('products')
         .doc(retailerProduct.id)
         .update(retailerProduct.toFirestore());
   }
 
   // Delete a retailer product
-  Future<void> deleteRetailerProduct(String retailerProductId, String category) async {
+  Future<void> deleteRetailerProduct(String productId) async {
     await _db
-        .collection('retailerProducts')
-        .doc('Categories')
-        .collection(category)
-        .doc(retailerProductId)
+        .collection('products')
+        .doc(productId)
         .delete();
   }
 }

@@ -2,7 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class RetailerProduct {
   final String id;
-  final String wholesalerProductId;
+  final String name;
+  final String description;
+  final String image;
   final String retailerId;
   final int price; // Retailer's selling price
   final int stock; // Retailer's available stock
@@ -12,7 +14,9 @@ class RetailerProduct {
 
   RetailerProduct({
     required this.id,
-    required this.wholesalerProductId,
+    required this.name,
+    required this.description,
+    required this.image,
     required this.retailerId,
     required this.price,
     required this.stock,
@@ -25,7 +29,9 @@ class RetailerProduct {
     final data = doc.data() as Map<String, dynamic>;
     return RetailerProduct(
       id: doc.id,
-      wholesalerProductId: data['productId'] as String,
+      name: data['name'] as String,
+      description: data['description'] as String,
+      image: data['image'] as String,
       retailerId: data['retailerId'] as String,
       price: data['price'] as int,
       stock: data['stock'] as int,
@@ -37,7 +43,9 @@ class RetailerProduct {
 
   Map<String, dynamic> toFirestore() {
     return {
-      'wholesalerProductId': wholesalerProductId,
+      'name': name,
+      'description': description,
+      'image': image,
       'retailerId': retailerId,
       'price': price,
       'stock': stock,
@@ -49,7 +57,9 @@ class RetailerProduct {
 
   RetailerProduct copyWith({
     String? id,
-    String? wholesalerProductId,
+    String? name,
+    String? description,
+    String? image,
     String? retailerId,
     int? price,
     int? stock,
@@ -59,7 +69,9 @@ class RetailerProduct {
   }) {
     return RetailerProduct(
       id: id ?? this.id,
-      wholesalerProductId: wholesalerProductId ?? this.wholesalerProductId,
+      name: name ?? this.name,
+      description: description ?? this.description,
+      image: image ?? this.image,
       retailerId: retailerId ?? this.retailerId,
       price: price ?? this.price,
       stock: stock ?? this.stock,
