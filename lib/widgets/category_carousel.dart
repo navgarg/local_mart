@@ -79,7 +79,7 @@ class _CategoryCarouselState extends State<CategoryCarousel> {
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: categories.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 12),
+            separatorBuilder: (_, _) => const SizedBox(width: 12),
             itemBuilder: (context, index) {
               final label = categories[index];
               String formattedLabel = label.trim();
@@ -101,7 +101,7 @@ class _CategoryCarouselState extends State<CategoryCarousel> {
                   children: [
                     CircleAvatar(
                       radius: 28,
-                      backgroundColor: Theme.of(context).primaryColor.withOpacity(0.08),
+                      backgroundColor: Theme.of(context).primaryColor.withAlpha((255 * 0.08).round()),
                       child: Icon(
                         _iconForLabel(label),
                         color: Theme.of(context).primaryColor,

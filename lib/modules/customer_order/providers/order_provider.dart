@@ -575,7 +575,13 @@ class OrderProvider with ChangeNotifier {
         .where('items', arrayContains: {'sellerId': sellerId}) // Filter by sellerId in order items
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs.map((doc) => models.Order.fromDoc(doc)).toList();
+      return snapshot.docs
+          .map((doc) => models.Order.fromDoc(doc))
+          .where((order) =>
+              order.status != 'delivered' &&
+              order.status != 'cancelled' &&
+              order.status != 'pickup_cancelled')
+          .toList();
     });
   }
 
@@ -586,9 +592,7 @@ class OrderProvider with ChangeNotifier {
     return FirebaseFirestore.instance
         .collectionGroup('orders') // Search across all 'orders' subcollections
         .where('retailerId', isEqualTo: retailerId) // Filter by retailerId
-        .where('status', isNotEqualTo: 'delivered') // Exclude delivered orders
-        .where('status', isNotEqualTo: 'cancelled') // Exclude cancelled orders
-        .where('status', isNotEqualTo: 'pickup_cancelled') // Exclude pickup cancelled orders
+
         .snapshots()
         .map((snapshot) {
       return snapshot.docs.map((doc) => models.Order.fromDoc(doc)).toList();
