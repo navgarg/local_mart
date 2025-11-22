@@ -81,6 +81,7 @@ class _WholesalerProductFormPageState extends State<WholesalerProductFormPage> {
           image: _imageController.text,
           price: int.parse(_priceController.text),
           stock: int.parse(_stockController.text),
+
         );
         await wholesalerProductService.updateWholesalerProduct(updatedProduct);
       }

@@ -426,20 +426,7 @@ class _SearchPageState extends State<SearchPage> {
     final distanceKmVal = p['__distanceKm'] as double?;
     final rating = ((p['avgRating'] ?? 0) as num).toDouble();
 
-    final productModel = Product(
-      id: p['__docId'] ?? '',
-      name: name,
-      description: desc,
-      image: imgStr,
-      price: (price is num)
-          ? price.toInt()
-          : int.tryParse(price.toString()) ?? 0,
-      stock: (p['stock'] ?? 0) is int
-          ? (p['stock'] ?? 0)
-          : int.tryParse((p['stock'] ?? 0).toString()) ?? 0,
-      sellerId: p['sellerId'] ?? '',
-      avgRating: rating,
-    );
+    final productModel = Product.fromFirestore(p, p['__docId'] ?? '');
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),

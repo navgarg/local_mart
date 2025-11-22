@@ -63,16 +63,20 @@ class _OrderAgainCarouselState extends State<OrderAgainCarousel> {
           // If live data not found, fallback to order item data
           map[pid] =
               liveProduct ??
-              Product(
-                id: pid,
-                name: item['name'] ?? '',
-                description: '',
-                image: item['image'] ?? '',
-                price: (item['price'] ?? 0).toInt(),
-                stock: 0,
-                sellerId: item['sellerId'] ?? '',
-                avgRating: 0,
-                extraData: {'productPath': item['productPath'] ?? ''},
+              Product.fromFirestore(
+                {
+                  'id': pid,
+                  'name': item['name'] ?? '',
+                  'description': '',
+                  'image': item['image'] ?? '',
+                  'price': (item['price'] ?? 0).toInt(),
+                  'stock': 0,
+                  'sellerId': item['sellerId'] ?? '',
+                  'avgRating': 0,
+                  'sellerType': 'unknown', // Default sellerType for fallback
+                  'extraData': {'productPath': item['productPath'] ?? ''},
+                },
+                pid,
               );
         }
       }

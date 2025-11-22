@@ -12,63 +12,85 @@ class RetailerInventoryPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<List<RetailerProduct>>(
-      stream: Provider.of<RetailerProductService>(context).getRetailerProducts(retailerId),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
-        }
-        if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const Center(child: Text('No products found.'));
-        }
+    return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: Theme.of(context).primaryColor,
+        child: const Icon(Icons.add, color: Colors.white),
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) =>
+                  RetailerProductFormPage(retailerId: retailerId),
+            ),
+          );
+        },
+      ),
+      body: StreamBuilder<List<RetailerProduct>>(
+        stream: Provider.of<RetailerProductService>(
+          context,
+        ).getRetailerProducts(retailerId),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return const Center(child: Text('No products found.'));
+          }
 
-        final products = snapshot.data!;
-        return ListView.builder(
-          itemCount: products.length,
-          itemBuilder: (context, index) {
-            final product = products[index];
-            return FutureBuilder<Product?>(
-              future: ProductService().getProductById(product.productId),
-              builder: (context, productSnapshot) {
-                if (productSnapshot.connectionState == ConnectionState.waiting) {
-                  return const ListTile(title: Text('Loading product...'));
-                }
-                if (productSnapshot.hasError) {
-                  return ListTile(title: Text('Error: ${productSnapshot.error}'));
-                }
-                final fullProduct = productSnapshot.data;
-                if (fullProduct == null) {
-                  return const ListTile(title: Text('Product not found'));
-                }
-                return Card(
-                  margin: const EdgeInsets.all(8.0),
-                  child: ListTile(
-                    title: Text(fullProduct.name),
-                    subtitle: Text('Price: \$${product.price.toStringAsFixed(2)}'),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.edit),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => RetailerProductFormPage(
-                              retailerId: retailerId,
-                              retailerProduct: product,
+          final products = snapshot.data!;
+          return ListView.builder(
+            itemCount: products.length,
+            itemBuilder: (context, index) {
+              final product = products[index];
+              return FutureBuilder<Product?>(
+                future: ProductService().getProductById(product.productId),
+                builder: (context, productSnapshot) {
+                  if (productSnapshot.connectionState ==
+                      ConnectionState.waiting) {
+                    return const ListTile(title: Text('Loading product...'));
+                  }
+                  if (productSnapshot.hasError) {
+                    return ListTile(
+                      title: Text('Error: ${productSnapshot.error}'),
+                    );
+                  }
+                  final fullProduct = productSnapshot.data;
+                  if (fullProduct == null) {
+                    return const ListTile(title: Text('Product not found'));
+                  }
+                  return Card(
+                    margin: const EdgeInsets.all(8.0),
+                    child: ListTile(
+                      title: Text(fullProduct.name),
+                      subtitle: Text(
+                        'Price: \$${product.price.toStringAsFixed(2)}',
+                      ),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.edit),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => RetailerProductFormPage(
+                                retailerId: retailerId,
+                                retailerProduct: product,
+                              ),
                             ),
-                          ),
-                        );
-                      },
+                          );
+                        },
+                      ),
                     ),
-                  ),
-                );
-              },
-            );
-          },
-        );
-      },
+                  );
+                },
+              );
+            },
+          );
+        },
+      ),
     );
   }
 }

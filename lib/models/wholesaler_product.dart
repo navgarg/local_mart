@@ -1,20 +1,18 @@
-// lib/models/wholesaler_product.dart
-
-
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:local_mart/models/product.dart';
 
 class WholesalerProduct {
   final String id;
   final String name;
   final String description;
-  final String image; // base64 string (raw or data URI)
+  final String image;
   final int price;
   final int stock;
   final String wholesalerId;
   final double avgRating;
   final Map<String, dynamic>? extraData;
-
-
+  final String sellerId;
+  final String sellerType;
   WholesalerProduct({
     required this.id,
     required this.name,
@@ -25,26 +23,8 @@ class WholesalerProduct {
     required this.wholesalerId,
     required this.avgRating,
     this.extraData,
-  });
-
-  // Safely parse numeric values coming from Firestore (String/num/int/double)
-  static int _toInt(dynamic v) {
-    if (v == null) return 0;
-    if (v is int) return v;
-    if (v is double) return v.toInt();
-    if (v is num) return v.toInt();
-    if (v is String) return int.tryParse(v) ?? double.tryParse(v)?.toInt() ?? 0;
-    return 0;
-  }
-
-  static double _toDouble(dynamic v) {
-    if (v == null) return 0.0;
-    if (v is double) return v;
-    if (v is int) return v.toDouble();
-    if (v is num) return v.toDouble();
-    if (v is String) return double.tryParse(v) ?? 0.0;
-    return 0.0;
-  }
+  }) : sellerId = wholesalerId,
+       sellerType = 'wholesaler';
 
   factory WholesalerProduct.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
@@ -53,10 +33,11 @@ class WholesalerProduct {
       name: (data['name'] ?? data['Name'] ?? '') as String,
       description: (data['Description'] ?? data['description'] ?? '') as String,
       image: (data['image'] ?? '') as String,
-      price: _toInt(data['price'] ?? data['Price']),
-      stock: _toInt(data['stock'] ?? data['Stock']),
-      wholesalerId: (data['wholesalerId'] ?? data['wholesalerID'] ?? '') as String,
-      avgRating: _toDouble(data['avgRating'] ?? 0),
+      price: Product.toInt(data['price'] ?? data['Price']),
+      stock: Product.toInt(data['stock'] ?? data['Stock']),
+      wholesalerId:
+          (data['wholesalerId'] ?? data['wholesalerID'] ?? '') as String,
+      avgRating: Product.toDouble(data['avgRating'] ?? 0),
       extraData: data,
     );
   }
@@ -70,7 +51,8 @@ class WholesalerProduct {
       'stock': stock,
       'wholesalerId': wholesalerId,
       'avgRating': avgRating,
-      'extraData': extraData,
+      'sellerType': sellerType,
+      ...extraData ?? {},
     };
   }
 
@@ -97,5 +79,4 @@ class WholesalerProduct {
       extraData: extraData ?? this.extraData,
     );
   }
-
 }

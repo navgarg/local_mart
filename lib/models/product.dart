@@ -1,6 +1,3 @@
-// lib/models/product.dart
-
-
 class Product {
   final String id;
   final String name;
@@ -9,9 +6,9 @@ class Product {
   final int price;
   final int stock;
   final String sellerId;
+  final String sellerType;
   final double avgRating;
   final Map<String, dynamic>? extraData;
-
 
   Product({
     required this.id,
@@ -21,12 +18,13 @@ class Product {
     required this.price,
     required this.stock,
     required this.sellerId,
+    required this.sellerType,
     required this.avgRating,
     this.extraData,
   });
 
   // Safely parse numeric values coming from Firestore (String/num/int/double)
-  static int _toInt(dynamic v) {
+  static int toInt(dynamic v) {
     if (v == null) return 0;
     if (v is int) return v;
     if (v is double) return v.toInt();
@@ -35,7 +33,7 @@ class Product {
     return 0;
   }
 
-  static double _toDouble(dynamic v) {
+  static double toDouble(dynamic v) {
     if (v == null) return 0.0;
     if (v is double) return v;
     if (v is int) return v.toDouble();
@@ -50,10 +48,11 @@ class Product {
       name: (data['name'] ?? data['Name'] ?? '') as String,
       description: (data['Description'] ?? data['description'] ?? '') as String,
       image: (data['image'] ?? '') as String,
-      price: _toInt(data['price'] ?? data['Price']),
-      stock: _toInt(data['stock'] ?? data['Stock']),
+      price: toInt(data['price'] ?? data['Price']),
+      stock: toInt(data['stock'] ?? data['Stock']),
       sellerId: (data['sellerId'] ?? data['sellerID'] ?? '') as String,
-      avgRating: _toDouble(data['avgRating'] ?? 0),
+      sellerType: (data['sellerType'] ?? '') as String,
+      avgRating: toDouble(data['avgRating'] ?? 0),
       extraData: data,
     );
   }
@@ -66,6 +65,7 @@ class Product {
     int? price,
     int? stock,
     String? sellerId,
+    String? sellerType,
     double? avgRating,
     Map<String, dynamic>? extraData,
   }) {
@@ -77,10 +77,24 @@ class Product {
       price: price ?? this.price,
       stock: stock ?? this.stock,
       sellerId: sellerId ?? this.sellerId,
+      sellerType: sellerType ?? this.sellerType,
       avgRating: avgRating ?? this.avgRating,
       extraData: extraData ?? this.extraData,
     );
   }
 
+  Map<String, dynamic> toFirestore() {
+    return {
+      'id': id,
+      'name': name,
+      'description': description,
+      'image': image,
+      'price': price,
+      'stock': stock,
+      'sellerId': sellerId,
+      'sellerType': sellerType,
+      'avgRating': avgRating,
+      'extraData': extraData,
+    };
+  }
 }
-
