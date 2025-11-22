@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:local_mart/models/wholesaler_product.dart';
 import 'package:local_mart/modules/wholesaler/services/wholesaler_product_service.dart';
+import 'package:local_mart/services/category_service.dart';
 
 class WholesalerProductFormPage extends StatefulWidget {
   final WholesalerProduct? wholesalerProduct;
@@ -21,6 +22,9 @@ class _WholesalerProductFormPageState extends State<WholesalerProductFormPage> {
   late TextEditingController _imageController;
   late TextEditingController _priceController;
   late TextEditingController _stockController;
+  String? _selectedCategory;
+  List<String> _categories = [];
+  final CategoryService _categoryService = CategoryService();
 
   @override
   void initState() {
@@ -40,6 +44,15 @@ class _WholesalerProductFormPageState extends State<WholesalerProductFormPage> {
     _stockController = TextEditingController(
       text: widget.wholesalerProduct?.stock.toString() ?? '',
     );
+
+    _categoryService.getCategories().listen((categories) {
+      setState(() {
+        _categories = categories;
+        if (widget.wholesalerProduct != null) {
+          _selectedCategory = widget.wholesalerProduct!.category;
+        }
+      });
+    });
   }
 
   @override
@@ -58,21 +71,32 @@ class _WholesalerProductFormPageState extends State<WholesalerProductFormPage> {
         context,
         listen: false,
       );
-      final String wholesalerId = FirebaseAuth.instance.currentUser!.uid;
+      final String sellerId = FirebaseAuth.instance.currentUser!.uid;
+
+      if (_selectedCategory == null) {
+        // This should ideally be caught by the DropdownButtonFormField validator,
+        // but as a fallback, we can show a SnackBar.
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please select a category')),
+        );
+        return;
+      }
 
       if (widget.wholesalerProduct == null) {
         // Add new product
         final newProduct = WholesalerProduct(
-          id: DateTime.now().millisecondsSinceEpoch.toString(), // Temporary ID
           name: _nameController.text,
           description: _descriptionController.text,
           image: _imageController.text,
           price: int.parse(_priceController.text),
           stock: int.parse(_stockController.text),
-          wholesalerId: wholesalerId,
-          avgRating: 0.0, // Default for new products
+          sellerId: sellerId,
+
         );
-        await wholesalerProductService.addWholesalerProduct(newProduct);
+        await wholesalerProductService.addWholesalerProduct(
+          newProduct,
+          _selectedCategory!,
+        );
       } else {
         // Update existing product
         final updatedProduct = widget.wholesalerProduct!.copyWith(
@@ -81,9 +105,11 @@ class _WholesalerProductFormPageState extends State<WholesalerProductFormPage> {
           image: _imageController.text,
           price: int.parse(_priceController.text),
           stock: int.parse(_stockController.text),
-
         );
-        await wholesalerProductService.updateWholesalerProduct(updatedProduct);
+        await wholesalerProductService.updateWholesalerProduct(
+          updatedProduct,
+          _selectedCategory!,
+        );
       }
       if (!mounted) return;
       Navigator.of(context).pop();
@@ -114,6 +140,30 @@ class _WholesalerProductFormPageState extends State<WholesalerProductFormPage> {
                   }
                   return null;
                 },
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                value: _selectedCategory,
+                hint: const Text('Select Category'),
+                onChanged: (String? newValue) {
+                  setState(() {
+                    _selectedCategory = newValue;
+                  });
+                },
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please select a category';
+                  }
+                  return null;
+                },
+                items: _categories.map<DropdownMenuItem<String>>((
+                  String value,
+                ) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                }).toList(),
               ),
               const SizedBox(height: 16),
               TextFormField(
