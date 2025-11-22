@@ -9,7 +9,11 @@ import 'package:local_mart/modules/retailer/pages/retailer_alerts_page.dart';
 class RetailerAccountPage extends StatefulWidget {
   final String userId;
   final VoidCallback onLogout;
-  const RetailerAccountPage({super.key, required this.userId, required this.onLogout});
+  const RetailerAccountPage({
+    super.key,
+    required this.userId,
+    required this.onLogout,
+  });
 
   @override
   State<RetailerAccountPage> createState() => _RetailerAccountPageState();
@@ -61,9 +65,7 @@ class _RetailerAccountPageState extends State<RetailerAccountPage> {
   Future<void> _saveProfile() async {
     final user = widget.userId;
 
-    final userRef = FirebaseFirestore.instance
-        .collection('users')
-        .doc(user);
+    final userRef = FirebaseFirestore.instance.collection('users').doc(user);
     final doc = await userRef.get();
 
     if (doc.exists) {
@@ -532,6 +534,11 @@ class _RetailerAccountPageState extends State<RetailerAccountPage> {
             'Alerts',
             () => Navigator.pushNamed(context, RetailerAlertsPage.routeName),
           ),
+          _buildOptionTile(
+            Icons.support_agent_outlined,
+            'Customer Support',
+            _showSupport,
+          ),
 
           const Spacer(),
 
@@ -559,11 +566,6 @@ class _RetailerAccountPageState extends State<RetailerAccountPage> {
                 ),
               ),
             ),
-          ),
-          _buildOptionTile(
-            Icons.support_agent_outlined,
-            'Customer Support',
-            _showSupport,
           ),
         ],
       ),
