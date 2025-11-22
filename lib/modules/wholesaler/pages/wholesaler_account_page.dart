@@ -4,26 +4,38 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:local_mart/models/app_user.dart';
 
-
-class WholesalerAccountPage extends StatefulWidget {
-  const WholesalerAccountPage({super.key});
+class WholesalerAccountPage extends StatelessWidget {
+  final String userId;
+  const WholesalerAccountPage({super.key, required this.userId});
 
   @override
-  State<WholesalerAccountPage> createState() => _WholesalerAccountPageState();
+  Widget build(BuildContext context) {
+    return _WholesalerAccountPageContent(userId: userId);
+  }
 }
 
-class _WholesalerAccountPageState extends State<WholesalerAccountPage> {
+class _WholesalerAccountPageContent extends StatefulWidget {
+  final String userId;
+  const _WholesalerAccountPageContent({required this.userId});
+
+  @override
+  State<_WholesalerAccountPageContent> createState() => _WholesalerAccountPageContentState();
+}
+
+class _WholesalerAccountPageContentState extends State<_WholesalerAccountPageContent> {
   String username = '';
   String mobile = '';
   Map<String, dynamic>? address;
   bool loading = true;
 
-  final _nameCtrl = TextEditingController();
-  final _mobileCtrl = TextEditingController();
+  late final TextEditingController _nameCtrl;
+  late final TextEditingController _mobileCtrl;
 
   @override
   void initState() {
     super.initState();
+    _nameCtrl = TextEditingController();
+    _mobileCtrl = TextEditingController();
     _loadProfile();
   }
 
@@ -32,7 +44,7 @@ class _WholesalerAccountPageState extends State<WholesalerAccountPage> {
     if (user == null) return;
     final doc = await FirebaseFirestore.instance
         .collection('users')
-        .doc(user.uid)
+        .doc(widget.userId)
         .get();
     final data = doc.data();
     if (doc.exists && data != null) {
@@ -62,7 +74,7 @@ class _WholesalerAccountPageState extends State<WholesalerAccountPage> {
 
     final userRef = FirebaseFirestore.instance
         .collection('users')
-        .doc(user.uid);
+        .doc(widget.userId);
     final doc = await userRef.get();
 
     if (doc.exists) {
@@ -106,10 +118,10 @@ class _WholesalerAccountPageState extends State<WholesalerAccountPage> {
       builder: (ctx) => AlertDialog(
         title: const Text('Feedback'),
         content: TextField(
-            controller: feedbackCtrl,
-            maxLines: 4,
-            decoration: const InputDecoration(hintText: 'Write feedback...'),
-          ),
+          controller: feedbackCtrl,
+          maxLines: 4,
+          decoration: const InputDecoration(hintText: 'Write feedback...'),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -118,14 +130,16 @@ class _WholesalerAccountPageState extends State<WholesalerAccountPage> {
           ElevatedButton(
             onPressed: () {
               Navigator.pop(ctx);
-          feedbackCtrl.dispose();
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Feedback submitted successfully, thank you!'),
-              ),
-            );
-          }
+              feedbackCtrl.dispose();
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'Feedback submitted successfully, thank you!',
+                    ),
+                  ),
+                );
+              }
             },
             child: const Text('Submit'),
           ),
@@ -375,7 +389,9 @@ class _WholesalerAccountPageState extends State<WholesalerAccountPage> {
                                       color: Colors.white,
                                       boxShadow: [
                                         BoxShadow(
-                                          color: Colors.black.withValues(alpha:0.1),
+                                          color: Colors.black.withValues(
+                                            alpha: 0.1,
+                                          ),
                                           blurRadius: 10,
                                           offset: const Offset(0, 4),
                                         ),
@@ -474,11 +490,10 @@ class _WholesalerAccountPageState extends State<WholesalerAccountPage> {
                                                   borderRadius:
                                                       BorderRadius.circular(12),
                                                 ),
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                      horizontal: 24,
-                                                      vertical: 10,
-                                                    ),
+                                                padding: const EdgeInsets.symmetric(
+                                                  horizontal: 24,
+                                                  vertical: 10,
+                                                ),
                                               ),
                                               child: const Text(
                                                 'Save',
@@ -539,7 +554,7 @@ class _WholesalerAccountPageState extends State<WholesalerAccountPage> {
             child: ElevatedButton.icon(
               onPressed: _logout,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.redAccent,
+                backgroundColor: Theme.of(context).colorScheme.primary,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),

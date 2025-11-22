@@ -7,7 +7,9 @@ import 'package:local_mart/modules/retailer/pages/retailer_orders_page.dart';
 import 'package:local_mart/modules/retailer/pages/retailer_alerts_page.dart';
 
 class RetailerAccountPage extends StatefulWidget {
-  const RetailerAccountPage({super.key});
+  final String userId;
+  final VoidCallback onLogout;
+  const RetailerAccountPage({super.key, required this.userId, required this.onLogout});
 
   @override
   State<RetailerAccountPage> createState() => _RetailerAccountPageState();
@@ -29,11 +31,10 @@ class _RetailerAccountPageState extends State<RetailerAccountPage> {
   }
 
   Future<void> _loadProfile() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
+    final user = widget.userId;
     final doc = await FirebaseFirestore.instance
         .collection('users')
-        .doc(user.uid)
+        .doc(user)
         .get();
     final data = doc.data();
     if (doc.exists && data != null) {
@@ -58,12 +59,11 @@ class _RetailerAccountPageState extends State<RetailerAccountPage> {
   }
 
   Future<void> _saveProfile() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
+    final user = widget.userId;
 
     final userRef = FirebaseFirestore.instance
         .collection('users')
-        .doc(user.uid);
+        .doc(user);
     final doc = await userRef.get();
 
     if (doc.exists) {
@@ -106,10 +106,10 @@ class _RetailerAccountPageState extends State<RetailerAccountPage> {
       builder: (ctx) => AlertDialog(
         title: const Text('Feedback'),
         content: TextField(
-            controller: feedbackCtrl,
-            maxLines: 4,
-            decoration: const InputDecoration(hintText: 'Write feedback...'),
-          ),
+          controller: feedbackCtrl,
+          maxLines: 4,
+          decoration: const InputDecoration(hintText: 'Write feedback...'),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -118,13 +118,13 @@ class _RetailerAccountPageState extends State<RetailerAccountPage> {
           ElevatedButton(
             onPressed: () {
               Navigator.pop(ctx);
-          feedbackCtrl.dispose();
-          if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Feedback submitted successfully, thank you!'),
-            ),
-          );
+              feedbackCtrl.dispose();
+              if (!mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Feedback submitted successfully, thank you!'),
+                ),
+              );
             },
             child: const Text('Submit'),
           ),
@@ -152,7 +152,6 @@ class _RetailerAccountPageState extends State<RetailerAccountPage> {
       ),
     );
   }
-
 
   void _showAddressSheet() {
     showModalBottomSheet(
@@ -211,12 +210,12 @@ class _RetailerAccountPageState extends State<RetailerAccountPage> {
                       Future.microtask(() {
                         if (!context.mounted) return;
                         Navigator.pushNamed(
-                            context,
-                            '/map-picker',
-                            arguments: {'role': 'Retailer'},
-                          ).then((_) {
-                            _loadProfile();
-                          });
+                          context,
+                          '/map-picker',
+                          arguments: {'role': 'Retailer'},
+                        ).then((_) {
+                          _loadProfile();
+                        });
                       });
                     },
                     icon: const Icon(
@@ -299,8 +298,6 @@ class _RetailerAccountPageState extends State<RetailerAccountPage> {
     }
   }
 
-
-
   Widget _buildOptionTile(IconData icon, String title, VoidCallback onTap) {
     return Column(
       children: [
@@ -373,7 +370,9 @@ class _RetailerAccountPageState extends State<RetailerAccountPage> {
                                       color: Colors.white,
                                       boxShadow: [
                                         BoxShadow(
-                                          color: Colors.black.withValues(alpha:0.1),
+                                          color: Colors.black.withValues(
+                                            alpha: 0.1,
+                                          ),
                                           blurRadius: 10,
                                           offset: const Offset(0, 4),
                                         ),
@@ -522,12 +521,14 @@ class _RetailerAccountPageState extends State<RetailerAccountPage> {
             _showAppSettingsSheet,
           ),
           _buildOptionTile(Icons.info_outline, 'Legal & About', () {}),
-          _buildOptionTile(Icons.feedback_outlined,
+          _buildOptionTile(
+            Icons.feedback_outlined,
             'Feedback',
             _showFeedbackDialog,
           ),
 
-          _buildOptionTile(Icons.notifications_none,
+          _buildOptionTile(
+            Icons.notifications_none,
             'Alerts',
             () => Navigator.pushNamed(context, RetailerAlertsPage.routeName),
           ),
@@ -538,7 +539,7 @@ class _RetailerAccountPageState extends State<RetailerAccountPage> {
             child: ElevatedButton.icon(
               onPressed: _logout,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.redAccent,
+                backgroundColor: Theme.of(context).colorScheme.primary,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
