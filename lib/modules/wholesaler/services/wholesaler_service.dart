@@ -20,4 +20,10 @@ class WholesalerService extends ChangeNotifier {
       }
     });
   }
+
+  Stream<List<Wholesaler>> getWholesalers() {
+    return _db.collection('users').where('role', isEqualTo: 'wholesaler').snapshots().map((snapshot) {
+      return snapshot.docs.map((doc) => Wholesaler.fromFirestore(doc)).toList();
+    });
+  }
 }

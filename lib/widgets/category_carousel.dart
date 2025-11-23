@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../modules/products_page/products_page.dart';
+
 
 class CategoryCarousel extends StatefulWidget {
-  const CategoryCarousel({super.key});
+  final Function(String)? onCategorySelected;
+
+  const CategoryCarousel({super.key, this.onCategorySelected});
 
   @override
   State<CategoryCarousel> createState() => _CategoryCarouselState();
@@ -89,12 +91,8 @@ class _CategoryCarouselState extends State<CategoryCarousel> {
 
               return InkWell(
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => ProductsPage(category: label),
-                    ),
-                  );
+                  Navigator.pop(context);
+                  widget.onCategorySelected?.call(label);
                 },
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
