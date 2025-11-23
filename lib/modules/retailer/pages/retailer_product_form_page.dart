@@ -1,18 +1,13 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:local_mart/models/retailer_product.dart';
-import 'package:local_mart/modules/retailer/services/retailer_product_service.dart';
-import 'package:local_mart/modules/wholesaler/services/category_service.dart';
 
 class RetailerProductFormPage extends StatefulWidget {
   final RetailerProduct? retailerProduct;
-  final String retailerId;
+
 
   const RetailerProductFormPage({
     super.key,
     this.retailerProduct,
-    required this.retailerId,
   });
 
   @override
@@ -29,9 +24,7 @@ class _RetailerProductFormPageState extends State<RetailerProductFormPage> {
   late TextEditingController _priceController;
   late TextEditingController _stockController;
   String? _selectedCategory;
-  List<String> _categories = [];
-  final CategoryService _categoryService = CategoryService();
-
+  final List<String> _categories = ['Electronics', 'Groceries', 'Home Goods'];
   @override
   void initState() {
     super.initState();
@@ -51,7 +44,6 @@ class _RetailerProductFormPageState extends State<RetailerProductFormPage> {
       text: widget.retailerProduct?.stock.toString() ?? '',
     );
     _selectedCategory = widget.retailerProduct?.category;
-    _loadCategories();
   }
 
   @override
@@ -64,26 +56,10 @@ class _RetailerProductFormPageState extends State<RetailerProductFormPage> {
     super.dispose();
   }
 
-  Future<void> _loadCategories() async {
-    _categoryService.getCategories().listen((categories) {
-      setState(() {
-        _categories = categories;
-      });
-    });
-  }
 
   Future<void> _saveProduct() async {
     if (_formKey.currentState!.validate()) {
-      final retailerProductService = Provider.of<RetailerProductService>(
-        context,
-        listen: false,
-      );
-      final String retailerId = widget.retailerId;
-      final String name = _nameController.text;
-      final String description = _descriptionController.text;
-      final String image = _imageController.text;
-      final int price = int.parse(_priceController.text);
-      final int stock = int.parse(_stockController.text);
+
 
       if (_selectedCategory == null) {
         if (!mounted) return;
@@ -92,35 +68,14 @@ class _RetailerProductFormPageState extends State<RetailerProductFormPage> {
         );
         return;
       }
-      final String category = _selectedCategory!;
+
 
       if (widget.retailerProduct == null) {
         // Add new product
-        final newProduct = RetailerProduct(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
-          name: name,
-          description: description,
-          image: image,
-          retailerId: retailerId,
-          price: price,
-          stock: stock,
-          createdAt: Timestamp.fromDate(DateTime.now()),
-          updatedAt: Timestamp.fromDate(DateTime.now()),
-          category: category,
-        );
-        await retailerProductService.addRetailerProduct(newProduct);
+
       } else {
         // Update existing product
-        final updatedProduct = widget.retailerProduct!.copyWith(
-          name: name,
-          description: description,
-          image: image,
-          price: price,
-          stock: stock,
-          updatedAt: Timestamp.fromDate(DateTime.now()),
-          category: category,
-        );
-        await retailerProductService.updateRetailerProduct(updatedProduct);
+
       }
       if (!mounted) return;
       Navigator.of(context).pop();

@@ -53,7 +53,7 @@ class OrderCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Order ID: ${order.id.substring(0, 8).toUpperCase()}',
+                  'Order ID: ${order.id.substring(0, order.id.length < 8 ? order.id.length : 8).toUpperCase()}',
                   style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 Container(

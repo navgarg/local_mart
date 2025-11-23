@@ -33,10 +33,10 @@ class _WholesalerDashboardPageState extends State<WholesalerDashboardPage> {
 
   List<Widget> _pages(String sellerId) => [
     WholesalerHomePage(sellerId: sellerId, onNavigate: _onNavTap),
-    WholesalerOrdersPage(sellerId: sellerId),
+    WholesalerOrdersPage(),
     WholesalerAccountPage(sellerId: sellerId),
-    WholesalerAlertsPage(sellerId: sellerId),
-    WholesalerInventoryPage(sellerId: sellerId),
+    const WholesalerAlertsPage(),
+    WholesalerInventoryPage(),
   ];
 
   void _onNavTap(int index) {

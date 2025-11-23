@@ -1,32 +1,28 @@
 import 'package:flutter/material.dart';
 
-import 'package:provider/provider.dart';
-import 'package:local_mart/modules/customer_order/providers/order_provider.dart';
-import 'package:local_mart/modules/customer_order/models/order_model.dart';
 
 
+import 'package:local_mart/data/dummy_data.dart';
 import 'package:local_mart/modules/retailer/pages/retailer_inventory_page.dart';
 
 
 
 
 class RetailerHomePage extends StatelessWidget {
-  final String userId;
-  const RetailerHomePage({super.key, required this.userId});
+  const RetailerHomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return RetailerDashboardContent(retailerId: userId);
+    return RetailerDashboardContent();
   }
 }
 
 class RetailerDashboardContent extends StatelessWidget {
-  final String retailerId;
-  const RetailerDashboardContent({super.key, required this.retailerId});
+  const RetailerDashboardContent({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final userId = retailerId;
+
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
@@ -55,21 +51,9 @@ class RetailerDashboardContent extends StatelessWidget {
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const SizedBox(height: 10),
-                  StreamBuilder<List<Order>>(
-                    stream: Provider.of<OrderProvider>(context)
-                        .getSellerOrders(userId),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-                      if (snapshot.hasError) {
-                        return Center(child: Text('Error: ${snapshot.error}'));
-                      }
-                      if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                        return const Center(child: Text('No new orders at the moment.'));
-                      }
-
-                      final newOrders = snapshot.data!
+                  Builder(
+                    builder: (context) {
+                      final newOrders = dummyOrders
                           .where((order) => order.status == 'order_placed')
                           .toList();
 
@@ -130,21 +114,9 @@ class RetailerDashboardContent extends StatelessWidget {
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const SizedBox(height: 10),
-                  StreamBuilder<List<Order>>(
-                    stream: Provider.of<OrderProvider>(context)
-                        .getRetailerWholesalerOrders(userId),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-                      if (snapshot.hasError) {
-                        return Center(child: Text('Error: ${snapshot.error}'));
-                      }
-                      if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                        return const Center(child: Text('No pending wholesaler orders.'));
-                      }
-
-                      final pendingOrders = snapshot.data!
+                  Builder(
+                    builder: (context) {
+                      final pendingOrders = dummyRetailerWholesalerOrders
                           .where((order) =>
                               order.status != 'delivered' &&
                               order.status != 'cancelled' &&
@@ -155,39 +127,43 @@ class RetailerDashboardContent extends StatelessWidget {
                         return const Center(child: Text('No pending wholesaler orders.'));
                       }
 
-                      return ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: pendingOrders.length,
-                        itemBuilder: (context, index) {
-                          final order = pendingOrders[index];
-                          return Card(
-                            margin: const EdgeInsets.symmetric(vertical: 4.0),
-                            child: ListTile(
-                              title: Text('Order ID: ${order.id.substring(0, 8)}'),
-                              subtitle: Text('Wholesaler: ${order.customerName} - Total: ₹${order.totalAmount.toStringAsFixed(2)}'),
-                              trailing: Text(order.status),
-                              onTap: () {
-                                Navigator.pushNamed(
-                                  context,
-                                  '/wholesaler-order-details',
-                                  arguments: order,
-                                );
+                      return Column(
+                        children: [
+                          ListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: pendingOrders.length,
+                            itemBuilder: (context, index) {
+                              final order = pendingOrders[index];
+                              return Card(
+                                margin: const EdgeInsets.symmetric(vertical: 4.0),
+                                child: ListTile(
+                                  title: Text('Order ID: ${order.id.substring(0, 8)}'),
+                                  subtitle: Text('Wholesaler: ${order.wholesalerId} - Total: ₹${order.totalAmount.toStringAsFixed(2)}'),
+                                  trailing: Text(order.status),
+                                  onTap: () {
+                                    Navigator.pushNamed(
+                                      context,
+                                      '/wholesaler-order-details',
+                                      arguments: order,
+                                    );
+                                  },
+                                ),
+                              );
+                            },
+                          ),
+                          Align(
+                            alignment: Alignment.bottomRight,
+                            child: TextButton(
+                              onPressed: () {
+                                Navigator.pushNamed(context, '/retailer-wholesaler-orders');
                               },
+                              child: const Text('View All Wholesaler Orders'),
                             ),
-                          );
-                        },
+                          ),
+                        ],
                       );
                     },
-                  ),
-                  Align(
-                    alignment: Alignment.bottomRight,
-                    child: TextButton(
-                      onPressed: () {
-                        Navigator.pushNamed(context, '/retailer-wholesaler-orders');
-                      },
-                      child: const Text('View All Wholesaler Orders'),
-                    ),
                   ),
                 ],
               ),
@@ -208,21 +184,21 @@ class RetailerDashboardContent extends StatelessWidget {
               ActionChip(
                 label: const Text('Manage Inventory'),
                 onPressed: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => RetailerInventoryPage(retailerId: retailerId)));
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => RetailerInventoryPage()));
                 },
                 avatar: const Icon(Icons.inventory),
               ),
               ActionChip(
                 label: const Text('Place New Wholesaler Order'),
                 onPressed: () {
-                  Navigator.pushNamed(context, '/retailer-wholesaler-order-form', arguments: retailerId);
+                  Navigator.pushNamed(context, '/retailer-wholesaler-order-form');
                 },
                 avatar: const Icon(Icons.add_shopping_cart),
               ),
               ActionChip(
                 label: const Text('View Customer History'),
                 onPressed: () {
-                  Navigator.pushNamed(context, '/retailer-customer-history', arguments: retailerId);
+                  Navigator.pushNamed(context, '/retailer-customer-history');
                 },
                 avatar: const Icon(Icons.people),
               ),

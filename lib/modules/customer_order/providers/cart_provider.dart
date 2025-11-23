@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:local_mart/models/alert.dart';
 import 'package:local_mart/services/alert_service.dart';
 
 import '../models/order_model.dart' as app_models;
@@ -42,7 +41,9 @@ class CartProvider with ChangeNotifier {
   // --------------------------------------------------------------------------
   Future<void> fetchStock(String productId, String productPath) async {
     try {
-      debugPrint('Fetching stock for productId: $productId, path: $productPath');
+      debugPrint(
+        'Fetching stock for productId: $productId, path: $productPath',
+      );
       final doc = await FirebaseFirestore.instance.doc(productPath).get();
       if (doc.exists) {
         final data = doc.data();
@@ -52,11 +53,15 @@ class CartProvider with ChangeNotifier {
           debugPrint('Stock for $productId set to: ${_stockCache[productId]}');
         } else {
           _stockCache[productId] = 0;
-          debugPrint('Stock field not found or is null for $productId. Setting to 0.');
+          debugPrint(
+            'Stock field not found or is null for $productId. Setting to 0.',
+          );
         }
       } else {
         _stockCache[productId] = 0;
-        debugPrint('Document does not exist for $productId. Setting stock to 0.');
+        debugPrint(
+          'Document does not exist for $productId. Setting stock to 0.',
+        );
       }
       notifyListeners();
     } catch (e) {
@@ -185,17 +190,17 @@ class CartProvider with ChangeNotifier {
 
     // Generate alerts for retailers
     final grouped = groupedByRetailer();
-    for (final retailerId in grouped.keys) {
-      final retailerItems = grouped[retailerId]!;
-      final message = "New order placed by ${customerName} for items: ${retailerItems.map((e) => e.name).join(', ')}.";
-      _alertService.addAlert(Alert(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        userId: retailerId, // The retailer's ID
-        message: message,
-        type: "new_order",
-        timestamp: Timestamp.now(),
-      ));
-    }
+    // for (final retailerId in grouped.keys) {
+    //   final retailerItems = grouped[retailerId]!;
+    //   final message = "New order placed by ${customerName} for items: ${retailerItems.map((e) => e.name).join(', ')}.";
+    //   _alertService.addAlert(Alert(
+    //     id: DateTime.now().millisecondsSinceEpoch.toString(),
+    //     userId: retailerId, // The retailer's ID
+    //     message: message,
+    //     type: "new_order",
+    //     timestamp: Timestamp.now(),
+    //   ));
+    // }
 
     clear();
   }

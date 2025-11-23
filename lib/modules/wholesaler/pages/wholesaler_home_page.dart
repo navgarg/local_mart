@@ -1,12 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:provider/provider.dart';
-import 'package:local_mart/modules/customer_order/providers/order_provider.dart';
-import 'package:local_mart/modules/customer_order/models/order_model.dart';
-import 'package:local_mart/models/wholesaler_product.dart';
-import 'package:local_mart/models/wholesaler.dart';
-import 'package:local_mart/modules/wholesaler/services/wholesaler_product_service.dart';
-import 'package:local_mart/modules/wholesaler/services/wholesaler_service.dart';
+import 'package:local_mart/data/dummy_data.dart';
 
 class WholesalerHomePage extends StatelessWidget {
   final String sellerId;
@@ -42,27 +36,12 @@ class WholesalerDashboardContent extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          StreamBuilder<Wholesaler?>(
-            stream: Provider.of<WholesalerService>(
-              context,
-            ).getWholesalerById(sellerId),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const CircularProgressIndicator();
-              }
-              if (snapshot.hasError) {
-                return Text('Error: ${snapshot.error}');
-              }
-              final wholesaler = snapshot.data;
-              print('WholesalerHomePage: Wholesaler object: $wholesaler, name: ${wholesaler?.name}');
-              return Text(
-                'Welcome, ${wholesaler?.name ?? 'Wholesaler'}!',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
-                ),
-              );
-            },
+          Text(
+            'Welcome, Wholesaler!',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              fontSize: 22,
+              fontWeight: FontWeight.w700,
+            ),
           ),
           const SizedBox(height: 20),
 
@@ -79,55 +58,26 @@ class WholesalerDashboardContent extends StatelessWidget {
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const SizedBox(height: 10),
-                  StreamBuilder<List<Order>>(
-                    stream: Provider.of<OrderProvider>(
-                      context,
-                    ).getSellerOrders(sellerId),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-                      if (snapshot.hasError) {
-                        return Center(child: Text('Error: ${snapshot.error}'));
-                      }
-                      if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                        return const Center(
-                          child: Text('No new orders at the moment.'),
-                        );
-                      }
-
-                      final newOrders = snapshot.data!
-                          .where((order) => order.status == 'order_placed')
-                          .toList();
-
-                      if (newOrders.isEmpty) {
-                        return const Center(
-                          child: Text('No new orders at the moment.'),
-                        );
-                      }
-
-                      return ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: newOrders.length,
-                        itemBuilder: (context, index) {
-                          final order = newOrders[index];
-                          return Card(
-                            margin: const EdgeInsets.symmetric(vertical: 4.0),
-                            child: ListTile(
-                              title: Text(
-                                'Order ID: ${order.id.substring(0, 8)}',
-                              ),
-                              subtitle: Text(
-                                'Retailer: ${order.customerName} - Total: ₹${order.totalAmount.toStringAsFixed(2)}',
-                              ),
-                              trailing: Text(order.status),
-                              onTap: () {
-                                // TODO: Navigate to order details page
-                              },
-                            ),
-                          );
-                        },
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: dummyOrders.length,
+                    itemBuilder: (context, index) {
+                      final order = dummyOrders[index];
+                      return Card(
+                        margin: const EdgeInsets.symmetric(vertical: 4.0),
+                        child: ListTile(
+                          title: Text(
+                            'Order ID: ${order.id.substring(0, 8)}',
+                          ),
+                          subtitle: Text(
+                            'Retailer: ${order.retailerId} - Total: ₹${order.totalAmount.toStringAsFixed(2)}',
+                          ),
+                          trailing: Text(order.status),
+                          onTap: () {
+                            // TODO: Navigate to order details page
+                          },
+                        ),
                       );
                     },
                   ),
@@ -159,38 +109,13 @@ class WholesalerDashboardContent extends StatelessWidget {
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const SizedBox(height: 10),
-                  StreamBuilder<List<WholesalerProduct>>(
-                    stream: Provider.of<WholesalerProductService>(
-                      context,
-                    ).getAllWholesalerProducts(sellerId),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-                      if (snapshot.hasError) {
-                        return Center(child: Text('Error: ${snapshot.error}'));
-                      }
-                      if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                        return const Center(
-                          child: Text('No products in inventory.'),
-                        );
-                      }
-
-                      final uniqueProducts = snapshot.data!.length;
-                      final totalStock = snapshot.data!.fold(
-                        0,
-                        (sum, product) => sum + product.stock,
-                      );
-
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Unique products: $uniqueProducts'),
-                          const SizedBox(height: 15),
-                          Text('Total stock: $totalStock items'),
-                        ],
-                      );
-                    },
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Unique products: ${dummyProducts.length}'),
+                      const SizedBox(height: 15),
+                      Text('Total stock: ${dummyProducts.fold(0, (sum, product) => sum + 1)} items'), // Assuming each dummy product has a stock of 1 for simplicity
+                    ],
                   ),
                   Align(
                     alignment: Alignment.bottomRight,

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:local_mart/models/alert.dart';
 import 'package:intl/intl.dart';
+import 'package:local_mart/data/dummy_data.dart';
 
 class AlertCard extends StatelessWidget {
   final Alert alert;
@@ -17,27 +17,29 @@ class AlertCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final formattedDate = DateFormat('MMM d, yyyy - hh:mm a').format(alert.timestamp.toDate());
+    final formattedDate = DateFormat(
+      'MMM d, yyyy - hh:mm a',
+    ).format(alert.timestamp);
 
     IconData icon;
     Color iconColor;
-    switch (alert.type) {
-      case 'order_update':
-        icon = Icons.shopping_cart_outlined;
-        iconColor = Colors.blue;
-        break;
-      case 'promotion':
-        icon = Icons.local_offer_outlined;
-        iconColor = Colors.green;
-        break;
-      case 'system':
-        icon = Icons.info_outline;
-        iconColor = Colors.orange;
-        break;
-      default:
-        icon = Icons.notifications_none;
-        iconColor = Colors.grey;
-    }
+    // switch (alert.type) {
+    //   case 'order_update':
+    //     icon = Icons.shopping_cart_outlined;
+    //     iconColor = Colors.blue;
+    //     break;
+    //   case 'promotion':
+    //     icon = Icons.local_offer_outlined;
+    //     iconColor = Colors.green;
+    //     break;
+    //   case 'system':
+    //     icon = Icons.info_outline;
+    //     iconColor = Colors.orange;
+    //     break;
+    //   default:
+    icon = Icons.notifications_none;
+    iconColor = Colors.grey;
+    // }
 
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
@@ -57,7 +59,9 @@ class AlertCard extends StatelessWidget {
                   child: Text(
                     alert.message,
                     style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: alert.isRead ? FontWeight.normal : FontWeight.bold,
+                      fontWeight: alert.isRead
+                          ? FontWeight.normal
+                          : FontWeight.bold,
                       color: alert.isRead ? Colors.grey[700] : Colors.black87,
                     ),
                   ),
@@ -67,7 +71,9 @@ class AlertCard extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               formattedDate,
-              style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: Colors.grey[600],
+              ),
             ),
             if (!alert.isRead || onDelete != null) ...[
               const SizedBox(height: 10),

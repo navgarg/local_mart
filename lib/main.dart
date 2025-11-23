@@ -195,7 +195,7 @@ class MyApp extends StatelessWidget {
                 body: Center(child: Text('User not logged in')),
               );
             }
-            return RetailerInventoryPage(retailerId: user.uid);
+            return RetailerInventoryPage();
           },
           '/retailer-customer-history': (context) {
             final user = FirebaseAuth.instance.currentUser;
@@ -204,7 +204,7 @@ class MyApp extends StatelessWidget {
                 body: Center(child: Text('User not logged in')),
               );
             }
-            return RetailerCustomerHistoryPage(retailerId: user.uid);
+            return RetailerCustomerHistoryPage();
           },
           '/retailer-wholesaler-orders': (context) {
             final user = FirebaseAuth.instance.currentUser;
@@ -213,7 +213,7 @@ class MyApp extends StatelessWidget {
                 body: Center(child: Text('User not logged in')),
               ); // Or redirect to login
             }
-            return RetailerWholesalerOrderListPage(retailerId: user.uid);
+            return RetailerWholesalerOrderListPage();
           },
           '/retailer-wholesaler-order-form': (context) {
             final retailerId =
@@ -234,7 +234,7 @@ class MyApp extends StatelessWidget {
                 body: Center(child: Text('User not logged in')),
               );
             }
-            return WholesalerInventoryPage(sellerId: user.uid);
+            return WholesalerInventoryPage();
           },
           '/wholesaler-dashboard': (context) {
             final user = FirebaseAuth.instance.currentUser;
@@ -252,7 +252,7 @@ class MyApp extends StatelessWidget {
                 body: Center(child: Text('User not logged in')),
               );
             }
-            return WholesalerOrdersPage(sellerId: user.uid);
+            return WholesalerOrdersPage();
           },
           WholesalerAlertsPage.routeName: (context) {
             final user = FirebaseAuth.instance.currentUser;
@@ -261,7 +261,7 @@ class MyApp extends StatelessWidget {
                 body: Center(child: Text('User not logged in')),
               );
             }
-            return WholesalerAlertsPage(sellerId: user.uid);
+            return WholesalerAlertsPage();
           },
           '/retailer-dashboard': (context) => const RetailerDashboardPage(),
           RetailerOrdersPage.routeName: (context) => const RetailerOrdersPage(),

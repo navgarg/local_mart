@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+
 import 'package:local_mart/modules/retailer/pages/retailer_home_page.dart';
 import 'package:local_mart/modules/retailer/pages/retailer_order_history_page.dart';
 import 'package:local_mart/modules/retailer/pages/retailer_account_page.dart';
@@ -27,11 +27,11 @@ class _RetailerDashboardPageState extends State<RetailerDashboardPage> {
   ];
 
   final List<Widget> _pages = [
-    RetailerHomePage(userId: FirebaseAuth.instance.currentUser?.uid ?? 'defaultRetailerId'),
+    RetailerHomePage(),
     const RetailerOrderHistoryPage(),
-    RetailerAccountPage(userId: FirebaseAuth.instance.currentUser?.uid ?? 'defaultRetailerId', onLogout: () {}),
+    const RetailerAccountPage(),
     const RetailerAlertsPage(),
-    RetailerInventoryPage(retailerId: FirebaseAuth.instance.currentUser?.uid ?? 'defaultRetailerId'),
+    RetailerInventoryPage(),
   ];
 
   void _onNavTap(int index) {

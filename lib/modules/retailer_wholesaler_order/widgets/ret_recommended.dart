@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:shimmer/shimmer.dart';
+import 'package:local_mart/data/dummy_data.dart';
 
 class RetailerRecommendedForYou extends StatefulWidget {
   final String userId;
@@ -13,61 +12,35 @@ class RetailerRecommendedForYou extends StatefulWidget {
 
 class _RetailerRecommendedForYouState extends State<RetailerRecommendedForYou> {
   List<Map<String, dynamic>> _products = [];
-  bool _isLoading = true;
+
+  final bool _useDummyData = true;
 
   @override
   void initState() {
     super.initState();
-    _fetchRecommendations();
-  }
-
-  Future<void> _fetchRecommendations() async {
-    try {
-      // 1. Get Retailer Preferences (assuming stored in users collection)
-      // If specific retailer stats aren't available, default to a category
-      String targetCategory = 'Electronics'; // Default fallback
-
-      final userDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(widget.userId)
-          .get();
-      if (userDoc.exists &&
-          userDoc.data()!.containsKey('retailerCategoryStats')) {
-        // Logic to pick top category
-      }
-
-      // 2. Query Wholesaler Products
-      // 🔹 CHANGE: Collection is wholesalerProducts
-      final query = await FirebaseFirestore.instance
-          .collection('wholesalerProducts')
-          .doc('Categories')
-          .collection(targetCategory)
-          .limit(6)
-          .get();
-
-      final List<Map<String, dynamic>> loaded = [];
-      for (var doc in query.docs) {
-        var data = doc.data();
-        data['id'] = doc.id;
-        data['category'] = targetCategory;
-        loaded.add(data);
-      }
-
-      if (mounted) {
-        setState(() {
-          _products = loaded;
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      debugPrint("Error fetching retailer recommendations: $e");
-      if (mounted) setState(() => _isLoading = false);
+    if (_useDummyData) {
+      _products = dummyProducts
+          .take(6)
+          .map(
+            (p) => {
+              'id': p.id,
+              'name': p.name,
+              'image': p.image,
+              'price': p.price,
+              'category': p.category,
+              'stock': 10, // Dummy stock value
+            },
+          )
+          .toList();
+      // _isLoading = false;
+    } else {
+      // _fetchRecommendations();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) return _buildShimmer();
+    if (_products.isEmpty) return SizedBox.shrink();
     if (_products.isEmpty) return SizedBox.shrink();
 
     // Use GridView or Column as per original design
@@ -148,25 +121,6 @@ class _RetailerRecommendedForYouState extends State<RetailerRecommendedForYou> {
           },
         ),
       ],
-    );
-  }
-
-  Widget _buildShimmer() {
-    return Shimmer.fromColors(
-      baseColor: Colors.grey.shade300,
-      highlightColor: Colors.grey.shade100,
-      child: GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          crossAxisSpacing: 10,
-          mainAxisSpacing: 10,
-          childAspectRatio: 0.75,
-        ),
-        itemCount: 4,
-        itemBuilder: (_, __) => Container(color: Colors.white),
-      ),
     );
   }
 }

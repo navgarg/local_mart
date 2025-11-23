@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:local_mart/data/dummy_data.dart';
 
 class RetailerOrderAgainCarousel extends StatefulWidget {
   const RetailerOrderAgainCarousel({super.key});
@@ -13,64 +12,25 @@ class RetailerOrderAgainCarousel extends StatefulWidget {
 class _RetailerOrderAgainCarouselState
     extends State<RetailerOrderAgainCarousel> {
   List<Map<String, dynamic>> orderedItems = [];
-  bool loading = true;
+
 
   @override
   void initState() {
     super.initState();
-    _fetchOrderedProducts();
+    orderedItems = dummyOrders.first.items.map((item) => {
+      'id': item.productId,
+      'name': item.productName,
+      'image': dummyProducts.firstWhere((p) => p.id == item.productId).image,
+      'price': item.price,
+      'quantity': item.quantity,
+    }).toList();
   }
 
-  Future<void> _fetchOrderedProducts() async {
-    try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) return;
 
-      // 🔹 CHANGE: Fetch from retailer orders collection
-      final ordersSnap = await FirebaseFirestore.instance
-          .collection(
-            'retailer_wholesaler_orders',
-          ) // Assuming this name based on your code
-          .where('retailerId', isEqualTo: user.uid)
-          .orderBy('createdAt', descending: true)
-          .limit(10)
-          .get();
-
-      final Map<String, Map<String, dynamic>> uniqueItems = {};
-
-      for (final doc in ordersSnap.docs) {
-        final items = doc.data()['items'] as List<dynamic>? ?? [];
-        for (final item in items) {
-          final pid = item['productId'] ?? '';
-          if (pid.isNotEmpty && !uniqueItems.containsKey(pid)) {
-            // We use the item data stored in the order to avoid extra reads,
-            // but you could fetch live data from wholesalerProducts/{cat}/{id} if needed
-            uniqueItems[pid] = {
-              'id': pid,
-              'name': item['name'],
-              'price': item['price'],
-              'image':
-                  item['image'] ?? '', // Ensure image is saved in order items
-            };
-          }
-        }
-      }
-
-      if (mounted) {
-        setState(() {
-          orderedItems = uniqueItems.values.toList();
-          loading = false;
-        });
-      }
-    } catch (e) {
-      debugPrint("Error fetching retailer orders: $e");
-      if (mounted) setState(() => loading = false);
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
-    if (loading || orderedItems.isEmpty) return const SizedBox.shrink();
+    if (orderedItems.isEmpty) return const SizedBox.shrink();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:local_mart/models/retailer_product.dart';
-import 'package:local_mart/modules/retailer/services/retailer_product_service.dart';
+import 'package:local_mart/data/dummy_data.dart';
+
+
+
 import 'package:local_mart/modules/retailer/pages/retailer_product_form_page.dart';
 
 
 class RetailerInventoryPage extends StatelessWidget {
-  final String retailerId;
-  const RetailerInventoryPage({super.key, required this.retailerId});
+  const RetailerInventoryPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -20,55 +20,36 @@ class RetailerInventoryPage extends StatelessWidget {
             context,
             MaterialPageRoute(
               builder: (context) =>
-                  RetailerProductFormPage(retailerId: retailerId),
+                  RetailerProductFormPage(),
             ),
           );
         },
       ),
-      body: StreamBuilder<List<RetailerProduct>>(
-        stream: Provider.of<RetailerProductService>(
-          context,
-        ).getRetailerProducts(retailerId),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
-          if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('No products found.'));
-          }
-
-          final products = snapshot.data!;
-          return ListView.builder(
-            itemCount: products.length,
-            itemBuilder: (context, index) {
-              final product = products[index];
-              return Card(
-                margin: const EdgeInsets.all(8.0),
-                child: ListTile(
-                  title: Text(product.name),
-                  subtitle: Text(
-                    'Price: ₹${product.price.toStringAsFixed(2)} | Stock: ${product.stock}',
-                  ),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.edit),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => RetailerProductFormPage(
-                            retailerId: retailerId,
-                            retailerProduct: product,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              );
-            },
+      body: ListView.builder(
+        itemCount: dummyRetailerProducts.length,
+        itemBuilder: (context, index) {
+          final product = dummyRetailerProducts[index];
+          return Card(
+            margin: const EdgeInsets.all(8.0),
+            child: ListTile(
+              title: Text(product.name),
+              subtitle: Text(
+                'Price: ₹${product.price.toStringAsFixed(2)} | Stock: ${product.stock}',
+              ),
+              trailing: IconButton(
+                icon: const Icon(Icons.edit),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => RetailerProductFormPage(
+                        retailerProduct: product,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
           );
         },
       ),
