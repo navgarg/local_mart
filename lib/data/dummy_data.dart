@@ -66,8 +66,18 @@ final List<Order> dummyOrders = [
     totalAmount: 250.0,
     status: 'order_placed',
     items: [
-      OrderItem(productId: 'p1', productName: 'Tomato', quantity: 2, price: 50.0),
-      OrderItem(productId: 'p3', productName: 'Carrot', quantity: 3, price: 40.0),
+      OrderItem(
+        productId: 'p1',
+        productName: 'Tomato',
+        quantity: 2,
+        price: 50.0,
+      ),
+      OrderItem(
+        productId: 'p3',
+        productName: 'Carrot',
+        quantity: 3,
+        price: 40.0,
+      ),
     ],
   ),
   Order(
@@ -78,7 +88,12 @@ final List<Order> dummyOrders = [
     totalAmount: 150.0,
     status: 'processing',
     items: [
-      OrderItem(productId: 'p2', productName: 'Speakers', quantity: 1, price: 150.0),
+      OrderItem(
+        productId: 'p2',
+        productName: 'Speakers',
+        quantity: 1,
+        price: 150.0,
+      ),
     ],
   ),
   Order(
@@ -89,7 +104,12 @@ final List<Order> dummyOrders = [
     totalAmount: 500.0,
     status: 'delivered',
     items: [
-      OrderItem(productId: 'p4', productName: 'Sofa', quantity: 1, price: 500.0),
+      OrderItem(
+        productId: 'p4',
+        productName: 'Sofa',
+        quantity: 1,
+        price: 500.0,
+      ),
     ],
   ),
 ];
@@ -112,7 +132,7 @@ class Alert {
   });
 }
 
-final List<Alert> dummyAlerts = [
+final List<Alert> dummyRetailerAlerts = [
   Alert(
     id: 'alert1',
     userId: 'retailer1',
@@ -137,11 +157,14 @@ final List<Alert> dummyAlerts = [
     timestamp: DateTime(2023, 11, 18, 9, 0),
     isRead: true,
   ),
+];
+
+final List<Alert> dummyWholesalerAlerts = [
   Alert(
     id: 'alert4',
     userId: 'wholesaler1',
-    title: 'New Retailer Signup',
-    message: 'A new retailer, "Fresh Mart", has signed up.',
+    title: 'New Order Received!',
+    message: 'You have a new order from "Agrawal\'s" for 10 items.',
     timestamp: DateTime(2023, 11, 20, 11, 0),
     isRead: false,
   ),

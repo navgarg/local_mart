@@ -138,7 +138,7 @@ class RetailerDashboardContent extends StatelessWidget {
                               return Card(
                                 margin: const EdgeInsets.symmetric(vertical: 4.0),
                                 child: ListTile(
-                                  title: Text('Order ID: ${order.id.substring(0, 8)}'),
+                                  title: Text('Order ID: ${order.id.substring(0, order.id.length < 8 ? order.id.length : 8)}'),
                                   subtitle: Text('Wholesaler: ${order.wholesalerId} - Total: ₹${order.totalAmount.toStringAsFixed(2)}'),
                                   trailing: Text(order.status),
                                   onTap: () {

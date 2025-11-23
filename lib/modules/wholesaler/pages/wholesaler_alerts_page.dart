@@ -11,9 +11,9 @@ class WholesalerAlertsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: ListView.builder(
-        itemCount: dummyAlerts.length,
+        itemCount: dummyWholesalerAlerts.length,
         itemBuilder: (context, index) {
-          final alert = dummyAlerts[index];
+          final alert = dummyWholesalerAlerts[index];
           return AlertCard(
             alert: alert,
             onMarkAsRead: () {

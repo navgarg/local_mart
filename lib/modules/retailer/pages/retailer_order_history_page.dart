@@ -7,9 +7,7 @@ class RetailerOrderHistoryPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Order History'),
-      ),
+
       body: ListView.builder(
         itemCount: dummyOrders.length,
         itemBuilder: (context, index) {
